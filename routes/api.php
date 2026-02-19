@@ -13,7 +13,7 @@ Route::get('reportes/docentes', [ReporteController::class, 'exportarDocentes']);
 Route::get('reportes/grupos', [ReporteController::class, 'exportarGrupos']);
 Route::get('reportes/horarios', [ReporteController::class, 'exportarHorarios']);
 Route::get('reporte-general', [ReporteController::class, 'reporteGeneral']);
-
+Route::get('reporte-pdf', [ReporteController::class, 'generarPDF']);
 // 2. Rutas generales
 Route::apiResource('docentes', DocenteController::class);
 Route::apiResource('espacios', App\Http\Controllers\Api\EspacioController::class);

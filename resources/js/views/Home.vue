@@ -97,8 +97,8 @@ const descargarTodo = () => {
 };
 
 const prepararPDF = () => {
-    alert("¡Botón listo! Estamos preparando el backend para generar el documento oficial de la UGM.");
-    // window.open('/api/reporte-pdf', '_blank'); // Lo activaremos cuando instalemos DomPDF
+    // Abre el PDF en una nueva pestaña (si usaste stream) o dispara la descarga directa
+    window.open('/api/reporte-pdf', '_blank'); 
 };
 
 // Ejecutar al entrar a la pantalla
