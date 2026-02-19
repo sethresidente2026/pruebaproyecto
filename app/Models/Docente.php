@@ -10,6 +10,7 @@ class Docente extends Model
     use HasFactory;
     
 protected $guarded = [];
+
 public function grupos(): HasMany
 {
     return $this->hasMany(Grupo::class);

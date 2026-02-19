@@ -8,23 +8,27 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DocentesExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class DocentesExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize,WithTitle,WithStyles
 {
     public function collection()
     {
         // Traemos a todos sin excepción para el reporte administrativo
         return Docente::all();
     }
-
+public function title(): string
+{
+    return 'Plantilla docente';
+}
     public function headings(): array
     {
         return [
-            'ID',
-            'Nombre del Docente [Fecha de Reporte]',
-            'Correo Electrónico',
-            'Estatus en Sistema',
-            'Fecha de Registro',
+            ['REPORTE OFICIAL DE DOCENTES - UGM RECTORÍA CENTRO'],
+            [''],
+            ['ID','Nombre del Docente ','Correo Electronico','Estatus','Fecha de Registro'],
         ];
     }
 
@@ -37,6 +41,16 @@ class DocentesExport implements FromCollection, WithHeadings, WithMapping, Shoul
             $docente->email,
             strtoupper($docente->estatus), // Lo ponemos en mayúsculas para que resalte
             Carbon::parse($docente->created_at)->format('d/m/Y H:i'), // Cuándo se dio de alta
+        ];
+    }
+    public function styles(Worksheet $sheet)
+    {
+   
+        $sheet->mergeCells('A1:E1');
+        
+        return [
+            1 => ['font' => ['bold' => true, 'size' => 14], 'alignment' => ['horizontal' => 'center']],
+            3 => ['font' => ['bold' => true]],
         ];
     }
 }

@@ -14,7 +14,7 @@ class ConsolidadoExport implements WithMultipleSheets
         return[
           'Docentes'=> new DocentesExport(),
           'Grupos'=> new GruposExport(),
-          'Horarios'=> new HorariosExport()
+          'Horarios'=> new HorariosExport(),
         ];
     }
 }
