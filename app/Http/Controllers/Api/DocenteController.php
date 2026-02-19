@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\DocentesExport;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Docente;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 class DocenteController extends Controller
 {
     /**
@@ -64,5 +67,15 @@ class DocenteController extends Controller
       if (!$docente) return response()->json(['mensaje'=> 'No encontrado'],404);
       $docente->delete();
       return response()->json(['mensaje'=>'Eliminado'],200);
+    }
+   public function exportarExcel() 
+    {
+        
+        $fecha = Carbon::now()->format('d_m_Y');
+       
+        $nombreArchivo = "Reporte_Docentes_UGM_{$fecha}.xlsx";
+
+       
+        return Excel::download(new DocentesExport, $nombreArchivo);
     }
 }

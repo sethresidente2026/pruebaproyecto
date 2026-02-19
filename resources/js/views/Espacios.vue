@@ -1,180 +1,241 @@
 <template>
-    <div class="p-6">
-        <h1 class="text-3xl font-bold mb-6">Gestión de Espacios</h1>
-
-        <div class="formulario-card" :class="{'modo-edicion': editandoId}">
-            <h2>{{ editandoId ? ' Editando Espacio' : ' Agregar Nuevo Espacio' }}</h2>
-            
-            <form @submit.prevent="guardarEspacio">
-                <div class="form-group">
-                    <label>Nombre del Espacio:</label>
-                    <input 
-                        type="text" 
-                        v-model="nuevoEspacio.nombre" 
-                        placeholder="Ej. Aula 101"
-                        :class="{'input-error': errores.nombre}"
-                    >
-                    <span class="text-error" v-if="errores.nombre">{{ errores.nombre[0] }}</span>
-                </div>
-
-                <div class="form-group">
-                    <label>Capacidad (personas):</label>
-                    <input 
-                        type="number" 
-                        v-model="nuevoEspacio.capacidad" 
-                        placeholder="Ej. 30"
-                        :class="{'input-error': errores.capacidad}"
-                    >
-                    <span class="text-error" v-if="errores.capacidad">{{ errores.capacidad[0] }}</span>
-                </div>
-
-                <div class="botones-form">
-                    <button type="submit" class="btn-guardar" :disabled="enviando">
-                        {{ enviando ? 'Guardando...' : (editandoId ? ' Actualizar' : ' Guardar') }}
-                    </button>
-                    <button type="button" class="btn-cancelar" v-if="editandoId" @click="cancelarEdicion">
-                        ❌ Cancelar
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="tabla-container">
-            <table v-if="espacios.length > 0">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre del Espacio</th>
-                        <th>Capacidad</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="espacio in espacios" :key="espacio.id">
-                        <td>{{ espacio.id }}</td>
-                        <td>{{ espacio.nombre }}</td>
-                        <td>{{ espacio.capacidad }} personas</td>
-                        <td>
-                            <button @click="cargarParaEditar(espacio)" class="btn-editar"> Editar</button>
-                            <button @click="eliminarEspacio(espacio.id)" class="btn-eliminar"> Eliminar</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <p v-else class="sin-datos">No hay espacios registrados...</p>
-        </div>
+  <div class="module-container">
+    <div class="module-header">
+      <div class="title-group">
+        <h1>Gestión de Espacios</h1>
+        <span class="badge-count">{{ espacios.length }} Registrados</span>
+      </div>
+      
+      <div class="header-actions">
+        <button @click="abrirModalCrear" class="btn-create">
+          <i class="fa-solid fa-plus"></i> Nuevo Espacio
+        </button>
+      </div>
     </div>
+
+    <div class="filter-bar">
+      <div class="search-box">
+        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" v-model="busqueda" placeholder="Buscar por nombre de aula o cancha..." />
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table" v-if="listaFiltrada.length > 0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre del Espacio</th>
+            <th>Capacidad Máxima</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="espacio in listaFiltrada" :key="espacio.id">
+            <td class="id-cell">#{{ espacio.id }}</td>
+            <td>
+              <div class="item-info">
+                <span class="main-text">
+                  <i class="fa-solid fa-door-open text-muted"></i> 
+                  {{ espacio.nombre }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <span class="capacidad-badge">
+                <i class="fa-solid fa-users"></i> {{ espacio.capacidad }} personas
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button @click="cargarParaEditar(espacio)" class="btn-icon edit" title="Editar">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button @click="eliminarEspacio(espacio.id)" class="btn-icon delete" title="Eliminar">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="sin-datos">
+        <i class="fa-solid fa-building-circle-xmark empty-icon"></i>
+        <p>No se encontraron espacios con ese nombre...</p>
+      </div>
+    </div>
+
+    <div v-if="mostrarModal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>
+            <i :class="editandoId ? 'fa-solid fa-pen-nib' : 'fa-solid fa-house-medical'"></i>
+            {{ editandoId ? 'Editar Espacio' : 'Nuevo Espacio' }}
+          </h2>
+          <button @click="cerrarModal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form @submit.prevent="guardarEspacio" class="modal-form">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Nombre del Espacio:</label>
+              <input type="text" v-model="nuevoEspacio.nombre" :class="{'input-error': errores.nombre}" placeholder="Ej. Aula 101, Cancha 2">
+              <span class="text-error" v-if="errores.nombre">{{ errores.nombre[0] }}</span>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Capacidad (Personas):</label>
+              <input type="number" v-model="nuevoEspacio.capacidad" :class="{'input-error': errores.capacidad}" placeholder="Ej. 35">
+              <span class="text-error" v-if="errores.capacidad">{{ errores.capacidad[0] }}</span>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" @click="cerrarModal" class="btn-cancelar">Cancelar</button>
+            <button type="submit" class="btn-guardar" :disabled="enviando">
+              <i class="fa-solid fa-floppy-disk"></i>
+              {{ enviando ? 'Procesando...' : (editandoId ? 'Guardar Cambios' : 'Registrar Espacio') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
+// Estado
 const espacios = ref([]);
 const nuevoEspacio = ref({ nombre: '', capacidad: '' });
 const errores = ref({});
 const enviando = ref(false);
-const editandoId = ref(null); // Variable para saber si estamos editando
+const editandoId = ref(null);
+const mostrarModal = ref(false);
+const busqueda = ref('');
 
-// 1. OBTENER DATOS (GET)
+// Filtro Inteligente
+const listaFiltrada = computed(() => {
+  const termino = busqueda.value.toLowerCase();
+  return espacios.value.filter(e => e.nombre.toLowerCase().includes(termino));
+});
+
+// Lógica de Datos
 const obtenerEspacios = async () => {
     try {
         const respuesta = await axios.get('/api/espacios');
         espacios.value = respuesta.data;
-    } catch (error) {
-        console.error("Error al cargar:", error);
-    }
+    } catch (error) { console.error("Error al cargar:", error); }
 };
 
-// 2. GUARDAR DATOS (POST o PUT)
+const abrirModalCrear = () => {
+    editandoId.value = null;
+    nuevoEspacio.value = { nombre: '', capacidad: '' };
+    errores.value = {};
+    mostrarModal.value = true;
+};
+
+const cargarParaEditar = (espacio) => {
+    nuevoEspacio.value = { nombre: espacio.nombre, capacidad: espacio.capacidad };
+    editandoId.value = espacio.id;
+    errores.value = {};
+    mostrarModal.value = true;
+};
+
+const cerrarModal = () => {
+    mostrarModal.value = false;
+};
+
 const guardarEspacio = async () => {
     errores.value = {};
     enviando.value = true;
-
     try {
         if (editandoId.value) {
-            // SI ESTAMOS EDITANDO (PUT)
-            const respuesta = await axios.put(`/api/espacios/${editandoId.value}`, nuevoEspacio.value);
-            
-            // Buscamos el espacio en la tabla y lo actualizamos al instante
-            const index = espacios.value.findIndex(e => e.id === editandoId.value);
-            if (index !== -1) {
-                espacios.value[index] = respuesta.data.data;
-            }
+            await axios.put(`/api/espacios/${editandoId.value}`, nuevoEspacio.value);
         } else {
-            // SI ESTAMOS CREANDO (POST)
-            const respuesta = await axios.post('/api/espacios', nuevoEspacio.value);
-            espacios.value.push(respuesta.data.data);
+            await axios.post('/api/espacios', nuevoEspacio.value);
         }
-        
-        // Limpiamos todo al terminar
-        cancelarEdicion();
-
+        await obtenerEspacios();
+        cerrarModal();
     } catch (error) {
         if (error.response && error.response.status === 422) {
             errores.value = error.response.data.errors;
         } else {
             alert("Error al guardar en el servidor.");
         }
-    } finally {
-        enviando.value = false;
+    } finally { 
+        enviando.value = false; 
     }
 };
 
-// 3. CARGAR DATOS AL FORMULARIO PARA EDITAR
-const cargarParaEditar = (espacio) => {
-    nuevoEspacio.value = { nombre: espacio.nombre, capacidad: espacio.capacidad };
-    editandoId.value = espacio.id;
-    errores.value = {};
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube la pantalla al formulario
-};
-
-// 4. CANCELAR EDICIÓN
-const cancelarEdicion = () => {
-    nuevoEspacio.value = { nombre: '', capacidad: '' };
-    editandoId.value = null;
-    errores.value = {};
-};
-
-// 5. ELIMINAR (DELETE)
 const eliminarEspacio = async (id) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este espacio?')) return; 
-
+    if (!confirm('¿Seguro que deseas eliminar este espacio?')) return; 
     try {
         await axios.delete(`/api/espacios/${id}`);
-        // Filtramos la tabla para quitar el eliminado
-        espacios.value = espacios.value.filter(espacio => espacio.id !== id);
+        espacios.value = espacios.value.filter(e => e.id !== id);
     } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("No se pudo eliminar el espacio.");
+        alert("No se pudo eliminar el espacio. Verifica que no tenga horarios asignados.");
     }
 };
 
-onMounted(() => {
-    obtenerEspacios();
-});
+onMounted(obtenerEspacios);
 </script>
 
 <style scoped>
-/* Estilos del formulario y tabla */
-.formulario-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; max-width: 500px; transition: all 0.3s ease; }
-.modo-edicion { border: 2px solid #f1c40f; box-shadow: 0 0 10px rgba(241, 196, 15, 0.3); }
-.formulario-card h2 { margin-top: 0; font-size: 1.2rem; color: #2c3e50; margin-bottom: 15px; }
-.form-group { margin-bottom: 15px; }
-label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
-.input-error { border-color: #e74c3c; background-color: #fadbd8; }
-.text-error { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; display: block; }
-.botones-form { display: flex; gap: 10px; }
-.btn-guardar { background-color: #2ecc71; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; flex-grow: 1; }
-.btn-cancelar { background-color: #95a5a6; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-.tabla-container { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
-th { background-color: #f8f9fa; font-weight: bold; color: #333; }
-tr:hover { background-color: #f1f1f1; }
-.btn-editar { background-color: #f1c40f; border: none; padding: 5px 10px; cursor: pointer; margin-right: 5px; border-radius: 3px; color: black; font-weight: bold;}
-.btn-eliminar { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold;}
-.sin-datos { text-align: center; color: #777; margin-top: 20px; }
+/* =========================================
+   Reutilizando el diseño corporativo
+   ========================================= */
+.module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.title-group h1 { color: var(--ugm-dark); font-size: 1.8rem; margin: 0; }
+.badge-count { background: #f0f2f5; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; color: #666; font-weight: bold; }
+
+/* Buscador */
+.filter-bar { margin-bottom: 20px; display: flex; gap: 15px; }
+.search-box { position: relative; width: 100%; max-width: 400px; }
+.search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; }
+.search-box input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e0e4e8; border-radius: 8px; font-size: 0.95rem; background: #fafbfc; }
+.search-box input:focus { outline: none; border-color: var(--ugm-red); box-shadow: 0 0 0 3px rgba(209, 16, 26, 0.1); }
+
+/* Tabla y Textos */
+.id-cell { font-weight: bold; color: #95a5a6; }
+.item-info { display: flex; flex-direction: column; gap: 4px; }
+.main-text { font-weight: 700; color: #2c3e50; font-size: 1rem; }
+.text-muted { color: #bdc3c7; margin-right: 5px; }
+
+.capacidad-badge { background: #eef2f5; border: 1px solid #dcdde1; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; color: #34495e; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+
+.actions-cell { text-align: center; white-space: nowrap; }
+.btn-icon.edit { color: #3498db; }
+.btn-icon.delete { color: #e74c3c; }
+
+/* Modal y Formulario */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+.modal-card { background: #fff; width: 100%; max-width: 450px; border-radius: 12px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: modalFadeIn 0.3s ease; }
+@keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+.modal-header h2 { margin: 0; font-size: 1.4rem; color: var(--ugm-dark); display: flex; align-items: center; gap: 10px; }
+.btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #95a5a6; transition: color 0.2s; }
+.btn-close:hover { color: #e74c3c; }
+
+.form-grid { display: flex; flex-direction: column; gap: 15px; }
+.form-group.full-width { width: 100%; }
+label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; font-size: 0.9rem;}
+input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box; font-size: 0.95rem;}
+.input-error { border-color: #e74c3c; background-color: #fff6f6; }
+.text-error { color: #e74c3c; font-size: 0.8rem; margin-top: 5px; display: block; }
+
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+.btn-guardar { background-color: var(--ugm-red); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+.btn-guardar:hover:not(:disabled) { background-color: #b00d15; transform: translateY(-1px); }
+.btn-cancelar { background-color: #f1f2f6; color: #576574; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-cancelar:hover { background-color: #dfe4ea; }
+
+/* Botones Superiores */
+.btn-create { background: var(--ugm-red); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+.btn-create:hover { background: #b00d15; box-shadow: 0 4px 10px rgba(209, 16, 26, 0.2); }
+
+.sin-datos { text-align: center; color: #95a5a6; padding: 40px 20px; }
+.empty-icon { font-size: 3rem; margin-bottom: 15px; color: #bdc3c7; }
 </style>

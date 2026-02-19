@@ -14,7 +14,7 @@ class HorarioController extends Controller
      */
    public function index()
     {
-        // Traemos el horario con la información del espacio y del grupo (que a su vez trae al docente y la actividad)
+        
         return Horario::with(['espacio', 'grupo.docente', 'grupo.actividad'])->get();
     }
 
