@@ -10,12 +10,11 @@ class GrupoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+  public function index()
     {
-        $grupos=Grupo::with('actividad','docente','ciclo','horario.espacio')->get();
-         return response()->json($grupos,200);
-        }
-
+        // Con "with" le exigimos a Laravel que incluya los datos de esas 4 tablas
+        return Grupo::with(['docente', 'actividad', 'ciclo', 'nivel'])->get();
+    }
     /**
      * Store a newly created resource in storage.
      */

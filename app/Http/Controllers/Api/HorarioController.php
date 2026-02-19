@@ -12,9 +12,10 @@ class HorarioController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+   public function index()
     {
-        return response()->json(Horario::with(['grupo','espacio'])->get(),200);
+        // Traemos el horario con la información del espacio y del grupo (que a su vez trae al docente y la actividad)
+        return Horario::with(['espacio', 'grupo.docente', 'grupo.actividad'])->get();
     }
 
     /**

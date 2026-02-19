@@ -8,9 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Docente extends Model
 {
     use HasFactory;
-    protected $fillable = [
-'nombre', 'apellidos', 'email', 'estatus'];
-
+    
+protected $guarded = [];
 public function grupos(): HasMany
 {
     return $this->hasMany(Grupo::class);

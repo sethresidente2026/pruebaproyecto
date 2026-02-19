@@ -2,39 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class Grupo extends Model
 {
-    use HasFactory;
-    protected $fillable = [
-        'nombre', 
-        'cupo_maximo', 
-        'actividad_id', 
-        'docente_id', 
-        'ciclo_id', 
-        'nivel_id'];
-    public function actividad(): BelongsTo
-    {
-        return $this->belongsTo(Actividad::class);
-    }
-    public function docente(): BelongsTo
-    {
-        return $this->belongsTo(Docente::class);
-    }
-    public function ciclo():BelongsTo
-    {
-        return $this->belongsTo(CicloEscolar::class,'ciclo_id');
+    // Permitimos que se guarden todos los datos masivamente
+    protected $guarded = [];
 
+    // Relaciones explícitas con las llaves foráneas correctas
+    public function docente() { 
+        return $this->belongsTo(Docente::class, 'docente_id'); 
     }
-    public function nivel(): BelongsTo
-    {
-        return $this->belongsTo(Nivel::class);
+    
+    public function actividad() { 
+        return $this->belongsTo(Actividad::class, 'actividad_id'); 
     }
-    public function horarios(): HasMany
-    {
-        return $this->hasMany(Horario::class);
+    
+    public function ciclo() { 
+        return $this->belongsTo(CicloEscolar::class, 'ciclo_id'); 
+    }
+    
+    public function nivel() { 
+        return $this->belongsTo(Nivel::class, 'nivel_id'); 
     }
 }

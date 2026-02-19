@@ -10,9 +10,11 @@ class DocenteController extends Controller
     /**
      * Display a listing of the resource.
      */
+    
     public function index()
     {
-        return response()->json([Docente::all()],200);
+        // Esto le manda la lista real a Vue al cargar la página
+        return Docente::all();
     }
 
     /**

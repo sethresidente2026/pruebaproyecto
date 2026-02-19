@@ -99,17 +99,24 @@ const guardarDocente = async () => {
     enviando.value = true;
     try {
         if (editandoId.value) {
-            const respuesta = await axios.put(`/api/docentes/${editandoId.value}`, nuevoDocente.value);
-            const index = docentes.value.findIndex(d => d.id === editandoId.value);
-            if (index !== -1) docentes.value[index] = respuesta.data.data;
+            await axios.put(`/api/docentes/${editandoId.value}`, nuevoDocente.value);
         } else {
-            const respuesta = await axios.post('/api/docentes', nuevoDocente.value);
-            docentes.value.push(respuesta.data.data);
+            await axios.post('/api/docentes', nuevoDocente.value);
         }
+        
+        
+        await obtenerDocentes();
+        
         cancelarEdicion();
     } catch (error) {
-        if (error.response && error.response.status === 422) errores.value = error.response.data.errors;
-    } finally { enviando.value = false; }
+        if (error.response && error.response.status === 422) {
+            errores.value = error.response.data.errors;
+        } else {
+            alert("Ocurrió un error en el servidor.");
+        }
+    } finally { 
+        enviando.value = false; 
+    }
 };
 
 const cargarParaEditar = (docente) => {
