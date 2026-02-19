@@ -13,7 +13,7 @@ class EspacioController extends Controller
      */
     public function index()
     {
-        return response()->json([Espacio::all(),200]);
+        return Espacio::all();
     }
 
     /**
@@ -21,11 +21,17 @@ class EspacioController extends Controller
      */
     public function store(Request $request)
 {
-    // ⚠️ ASÍ DEBE ESTAR (Solo el array):
+   
     $request->validate([
-        'nombre' => 'required|string|max:100',
-        'capacidad' => 'required|integer|min:1'
-    ]);
+            'nombre' => 'required|string|max:100',
+            'capacidad' => 'required|integer|min:1'
+        ], [
+            'nombre.required' => 'El nombre del espacio es obligatorio.',
+            'nombre.max' => 'El nombre no puede tener más de 100 caracteres.',
+            'capacidad.required' => 'Debes indicar la capacidad del espacio.',
+            'capacidad.integer' => 'La capacidad debe ser un número entero.',
+            'capacidad.min' => 'La capacidad debe ser de al menos 1 persona.'
+        ]);
 
     $espacio = Espacio::create($request->all());
 
@@ -61,11 +67,15 @@ class EspacioController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+ public function destroy(string $id)
     {
-        $espacio=Espacio::find($id);
-        if(!$espacio) return response()->json(['mensaje'=> 'No encontrado'],404);
+        $espacio = Espacio::find($id);
+        if (!$espacio) {
+            return response()->json(['mensaje' => 'No encontrado'], 404);
+        }
+
         $espacio->delete();
-        return response()->json(['mensaje'=>'Espacio eliminado'],202);
+
+        return response()->json(['mensaje' => 'Eliminado correctamente'], 200);
     }
 }

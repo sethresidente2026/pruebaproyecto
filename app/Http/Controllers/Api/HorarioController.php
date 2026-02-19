@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Horario;
+use App\Models\Grupo;
 class HorarioController extends Controller
+
 {
     /**
      * Display a listing of the resource.
@@ -20,31 +22,67 @@ class HorarioController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. Validamos que lleguen los datos correctos
         $request->validate([
             'grupo_id' => 'required|exists:grupos,id',
             'espacio_id' => 'required|exists:espacios,id',
             'dia_semana' => 'required|string',
-            'hora_inicio' => 'required|date_format:H:i', 
+            'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
-    ]); 
-    $empalme=Horario::where('espacio_id',$request->espacio_id)
-    ->where('dia_semana',$request->dia_semana)
-    ->where(function($query) use ($request) {
-    $query->where('hora_inicio','<',$request->hora_fin);
-    $query->where('hora_fin','>',$request->hora_inicio);
-    })
-    ->exists();
-    if($empalme){
+        ]);
+
+        $dia = $request->dia_semana;
+        $inicio = $request->hora_inicio;
+        $fin = $request->hora_fin;
+
+        // ==========================================
+        // BARRERA 1: EMPALME DE ESPACIO
+        // ==========================================
+        $empalmeEspacio = Horario::where('espacio_id', $request->espacio_id)
+            ->where('dia_semana', $dia)
+            ->where(function ($query) use ($inicio, $fin) {
+                $query->where('hora_inicio', '<', $fin)
+                      ->where('hora_fin', '>', $inicio);
+            })->exists();
+
+        if ($empalmeEspacio) {
+            return response()->json(['mensaje' => 'El ESPACIO ya está ocupado en ese horario.'], 409);
+        }
+
+        
+        $empalmeGrupo = Horario::where('grupo_id', $request->grupo_id)
+            ->where('dia_semana', $dia)
+            ->where(function ($query) use ($inicio, $fin) {
+                $query->where('hora_inicio', '<', $fin)
+                      ->where('hora_fin', '>', $inicio);
+            })->exists();
+
+        if ($empalmeGrupo) {
+            return response()->json(['mensaje' => 'El GRUPO ya tiene una actividad asignada a esa hora.'], 409);
+        }
+
+        $grupoNuevo = Grupo::find($request->grupo_id);
+
+        
+        $empalmeDocente = Horario::whereHas('grupo', function($query) use ($grupoNuevo) {
+                $query->where('docente_id', $grupoNuevo->docente_id);
+            })
+            ->where('dia_semana', $dia)
+            ->where(function ($query) use ($inicio, $fin) {
+                $query->where('hora_inicio', '<', $fin)
+                      ->where('hora_fin', '>', $inicio);
+            })->exists();
+
+        if ($empalmeDocente) {
+            return response()->json(['mensaje' => 'El DOCENTE ya imparte clases a otro grupo en ese horario.'], 409);
+        }
+
+        $horario = Horario::create($request->all());
+
         return response()->json([
-            'error'=>'Conflicto de Horario',
-            'mensaje'=>'El espacio ya esta ocupado en ese rango de horas'
-        ],409);
-    }
-    $horario=Horario::create($request->all());
-    return response()->json([
-        'mensaje'=>'Horario creado correctamente',
-        'horario'=> $horario
-    ],201);
+            'mensaje' => 'Horario asignado correctamente',
+            'data' => $horario
+        ], 201);
     }
 
     /**
