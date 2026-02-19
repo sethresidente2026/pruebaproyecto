@@ -55,15 +55,21 @@ const iniciarSesion = async () => {
     cargando.value = true;
 
     try {
+        // 1. EL TOQUE DE PUERTA: Pedimos el token CSRF a Laravel Sanctum
+        // Esto es obligatorio antes de hacer el POST del login
+       await axios.get('/sanctum/csrf-cookie')
+
+        // 2. ENVIAR CREDENCIALES: Ahora sí enviamos el correo y la contraseña
+       const respuesta = await axios.post('/api/login', formulario.value);
         
-const respuesta = await axios.post('/login', formulario.value);
-        
-      
+        // 3. GUARDAR EL PASE: Le decimos a Vue que ya estamos logueados
         localStorage.setItem('auth', 'true');
         
-   
+        // 4. ENTRAR AL SISTEMA: Redirigimos al Dashboard
         router.push('/');
+
     } catch (error) {
+        // Manejo de errores (Esto lo tenías perfecto)
         if (error.response && error.response.status === 401) {
             mensajeError.value = "Credenciales incorrectas. Intenta de nuevo.";
         } else {
