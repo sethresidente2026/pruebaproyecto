@@ -14,52 +14,61 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- Volcando datos para la tabla mydb.actividades: ~1 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.actividades: ~5 rows (aproximadamente)
 INSERT INTO `actividades` (`id`, `nombre`, `categoria_id`, `created_at`, `updated_at`) VALUES
-	(1, 'Fútbol', 1, '2026-02-18 19:14:09', NULL);
+	(2, 'Futbol', NULL, '2026-02-23 23:37:17', '2026-02-23 23:37:17'),
+	(3, 'Futbol Americano', NULL, '2026-02-23 23:37:26', '2026-02-23 23:37:26'),
+	(4, 'Basketball', NULL, '2026-02-23 23:37:38', '2026-02-23 23:37:38'),
+	(5, 'Danza', NULL, '2026-02-24 00:26:05', '2026-02-24 00:26:05'),
+	(6, 'Artes', NULL, '2026-02-24 00:26:21', '2026-02-24 00:26:21');
+
+-- Volcando datos para la tabla mydb.asistencias: ~2 rows (aproximadamente)
+INSERT INTO `asistencias` (`id`, `grupo_id`, `docente_id`, `docente_sustituto_id`, `fecha`, `estado`, `observaciones`, `created_at`, `updated_at`) VALUES
+	(1, 1, 1, NULL, '2026-02-23', 'Asistió', NULL, '2026-02-23 23:47:34', '2026-02-23 23:47:34'),
+	(2, 2, 2, NULL, '2026-02-23', 'Asistió', NULL, '2026-02-23 23:47:41', '2026-02-23 23:47:41');
 
 -- Volcando datos para la tabla mydb.cache: ~0 rows (aproximadamente)
 
 -- Volcando datos para la tabla mydb.cache_locks: ~0 rows (aproximadamente)
 
 -- Volcando datos para la tabla mydb.categorias: ~0 rows (aproximadamente)
-INSERT INTO `categorias` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-	(1, 'Deportiva', '2026-02-18 19:14:09', NULL);
 
--- Volcando datos para la tabla mydb.ciclos_escolares: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.ciclos_escolares: ~4 rows (aproximadamente)
 INSERT INTO `ciclos_escolares` (`id`, `nombre`, `activo`, `created_at`, `updated_at`) VALUES
-	(1, '2025-2026', 1, '2026-02-18 19:14:09', NULL);
+	(1, '2025-2026', 1, '2026-02-23 17:40:17', NULL),
+	(2, '2025-2026', 1, '2026-02-23 17:40:22', NULL),
+	(3, '2025-2026', 1, '2026-02-23 23:43:42', '2026-02-23 23:43:42'),
+	(4, '2026-2027', 1, '2026-02-23 23:43:50', '2026-02-23 23:43:50');
 
--- Volcando datos para la tabla mydb.docentes: ~5 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.docentes: ~3 rows (aproximadamente)
 INSERT INTO `docentes` (`id`, `nombre`, `apellidos`, `email`, `estatus`, `created_at`, `updated_at`) VALUES
-	(1, 'Roberto', 'Gómez Bolaños', 'chespirito@escuela.edu.mx', 'Activo', '2026-02-19 01:15:45', '2026-02-19 01:15:45'),
-	(3, 'Maestro2', 'maestro', 'maestro@gmail.com', 'Activo', '2026-02-19 21:47:27', '2026-02-19 21:47:27'),
-	(4, 'Docente1', '1', 'docente@gmail.com', 'Activo', '2026-02-19 21:49:42', '2026-02-19 21:49:42'),
-	(5, 'd1', 'd', 'd@gmail.com', 'Activo', '2026-02-19 21:57:29', '2026-02-19 21:57:29'),
-	(6, 'a', 'B', 'TEST@gmail.com', 'Activo', '2026-02-20 00:04:21', '2026-02-20 00:04:21');
+	(1, 'Roberto', 'Gomez Bolaños', 'chespirito@gmail.com', 'Activo', '2026-02-23 23:38:28', '2026-02-23 23:38:28'),
+	(2, 'Brad', 'Pitt', 'bradpit@gmail.com', 'Activo', '2026-02-23 23:38:48', '2026-02-23 23:38:48');
 
--- Volcando datos para la tabla mydb.espacios: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.espacios: ~3 rows (aproximadamente)
 INSERT INTO `espacios` (`id`, `nombre`, `created_at`, `updated_at`, `capacidad`) VALUES
-	(1, 'Aula 11', '2026-02-19 01:14:23', '2026-02-20 00:37:16', 37),
-	(3, 'Aula101', '2026-02-20 01:38:01', '2026-02-20 01:38:01', 30);
+	(1, 'Aula 10', '2026-02-23 23:37:49', '2026-02-23 23:37:49', 30),
+	(2, 'Aula 20', '2026-02-23 23:38:00', '2026-02-23 23:38:00', 20),
+	(3, 'Aula 15', '2026-02-24 00:28:36', '2026-02-24 00:28:36', 12);
 
 -- Volcando datos para la tabla mydb.failed_jobs: ~0 rows (aproximadamente)
 
--- Volcando datos para la tabla mydb.grupos: ~1 rows (aproximadamente)
-INSERT INTO `grupos` (`id`, `nombre`, `cupo_maximo`, `actividad_id`, `docente_id`, `ciclo_id`, `nivel_id`, `created_at`, `updated_at`) VALUES
-	(3, 'futbol hombres', 12, 1, 1, 1, 1, '2026-02-19 22:06:17', '2026-02-19 22:06:17'),
-	(4, 'Futbol Femenino', 20, 1, 1, 1, 1, '2026-02-20 01:39:50', '2026-02-20 01:39:50');
+-- Volcando datos para la tabla mydb.grupos: ~3 rows (aproximadamente)
+INSERT INTO `grupos` (`id`, `nombre`, `nivel`, `cupo_maximo`, `actividad_id`, `docente_id`, `ciclo_id`, `nivel_id`, `created_at`, `updated_at`) VALUES
+	(1, 'Hombres Futbol', 'Mixto', 30, 2, 1, 1, 3, '2026-02-23 23:45:35', '2026-02-23 23:45:35'),
+	(2, 'Femenil Futbol', 'Primaria', 34, 2, 2, 1, 3, '2026-02-23 23:46:07', '2026-02-23 23:46:07'),
+	(3, 'Varonil Futbol Americano', 'Bachillerato', 30, 3, 1, 1, 5, '2026-02-24 00:04:07', '2026-02-24 00:04:07');
 
--- Volcando datos para la tabla mydb.horarios: ~1 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.horarios: ~2 rows (aproximadamente)
 INSERT INTO `horarios` (`id`, `grupo_id`, `espacio_id`, `dia_semana`, `hora_inicio`, `hora_fin`, `created_at`, `updated_at`) VALUES
-	(4, 3, 1, 'Lunes', '18:00:00', '19:00:00', '2026-02-20 00:10:18', '2026-02-20 00:10:18'),
-	(5, 3, 3, 'Lunes', '08:00:00', '10:00:00', '2026-02-20 01:39:17', '2026-02-20 01:39:17');
+	(1, 1, 1, 'Lunes', '07:00:00', '08:00:00', '2026-02-23 23:46:33', '2026-02-23 23:46:33'),
+	(2, 2, 2, 'Lunes', '07:00:00', '08:00:00', '2026-02-23 23:47:15', '2026-02-23 23:47:15');
 
 -- Volcando datos para la tabla mydb.jobs: ~0 rows (aproximadamente)
 
 -- Volcando datos para la tabla mydb.job_batches: ~0 rows (aproximadamente)
 
--- Volcando datos para la tabla mydb.migrations: ~12 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.migrations: ~14 rows (aproximadamente)
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(1, '0001_01_01_000000_create_users_table', 1),
 	(2, '0001_01_01_000001_create_cache_table', 1),
@@ -72,25 +81,31 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(9, '2026_02_18_171603_create_actividads_table', 1),
 	(10, '2026_02_18_171614_create_grupos_table', 1),
 	(11, '2026_02_18_172038_create_horarios_table', 1),
-	(12, '2026_02_18_185850_create_personal_access_tokens_table', 1);
+	(12, '2026_02_18_185850_create_personal_access_tokens_table', 1),
+	(13, '2026_02_23_153845_add_nivel_a_grupos_table', 1),
+	(14, '2026_02_23_155208_create_asistencias_table', 1);
 
--- Volcando datos para la tabla mydb.niveles: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.niveles: ~6 rows (aproximadamente)
 INSERT INTO `niveles` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-	(1, 'Bachillerato', '2026-02-18 19:14:09', NULL);
+	(1, 'PREESCOLAR', '2026-02-23 23:45:06', '2026-02-23 23:45:06'),
+	(2, 'PRIMARIA', '2026-02-23 23:45:06', '2026-02-23 23:45:06'),
+	(3, 'SECUNDARIA', '2026-02-23 23:45:06', '2026-02-23 23:45:06'),
+	(4, 'BACHILLERATO', '2026-02-23 23:45:06', '2026-02-23 23:45:06'),
+	(5, 'LICENCIATURA', '2026-02-23 23:45:06', '2026-02-23 23:45:06'),
+	(6, 'MAESTRÍA', '2026-02-23 23:45:06', '2026-02-23 23:45:06');
 
 -- Volcando datos para la tabla mydb.password_reset_tokens: ~0 rows (aproximadamente)
 
 -- Volcando datos para la tabla mydb.personal_access_tokens: ~0 rows (aproximadamente)
 
--- Volcando datos para la tabla mydb.sessions: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.sessions: ~1 rows (aproximadamente)
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-	('Q5NMBl6DnyHgTLtPloId0Zy9bwBtb7OCy5AEqETv', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoiVjlSeWV5SE5VWXdSSEtzN2ZrdFdBRWR5b1hGN21zcWtDUURkTmM4ZyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1771529456),
-	('YW5ZrIPmVXduNx6NOdl5xQRt3Jc2M4vd2LsUqttT', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiN0hVREZQZmdYZmRKN2g3enQ3dnlpZHNrMzAyS2pDc2NNQkM3SUhqWCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjk6Il9wcmV2aW91cyI7YToyOntzOjM6InVybCI7czozMzoiaHR0cDovL3Npc3RlbWFwcmFjdGljYS50ZXN0L2xvZ2luIjtzOjU6InJvdXRlIjtOO319', 1771529166);
+	('CdXAgrbXLzP1L4uYfZFFt14L4zyDnCGjLxNoDG5U', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoiTGlsb21BUkoyRXhqMThPMjJRWUNzb0NlZ1R5amtpT0tvY3pOeTB0MyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1771867133);
 
--- Volcando datos para la tabla mydb.users: ~1 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.users: ~2 rows (aproximadamente)
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-	(1, 'Admin UGM', 'admin@ugm.edu.mx', NULL, '$2y$12$Uxpaen4yfmgeJghLiamUg.N5pVFmMUEa5cuGEYKvK8rQwB7Vcnkdm', NULL, '2026-02-19 22:28:03', '2026-02-19 22:28:03'),
-	(2, 'YO', 'prueba@gmail.com', NULL, '$2y$12$S/DGnJJxj.bdJgc9Osngm.iaNLisTl/QtdjX6bT6j1C0W/sPbCY0m', NULL, '2026-02-23 21:03:17', '2026-02-23 21:03:17');
+	(1, 'Test User', 'test@example.com', '2026-02-23 23:17:26', '$2y$12$xViqN97/GUySIlNRF1/0Xu81vTd6qV7aWGZrOGf0w929eTvrn8m5a', 'yaLpfVdOE5', '2026-02-23 23:17:26', '2026-02-23 23:17:26'),
+	(2, 'YO', 'prueba@gmail.com', NULL, '$2y$12$j3xieaShCPgWU2LtDQMTU.aTMSV/n2LrXnfvRJD6.wjKswJ8SVpf6', NULL, '2026-02-23 23:18:30', '2026-02-23 23:18:30');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
