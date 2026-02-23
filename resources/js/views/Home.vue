@@ -40,6 +40,14 @@
           <p>Asignaciones Totales</p>
         </div>
       </div>
+
+      <div class="stat-card">
+        <div class="icon-box bg-ugm-red"><i class="fa-solid fa-clipboard-check"></i></div>
+        <div class="info">
+          <h3>{{ totales.asistencias }} Clases</h3>
+          <p>Registradas Hoy</p>
+        </div>
+      </div>
     </div>
 
     <div class="report-section">
@@ -66,26 +74,29 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-// Estado para guardar el conteo real de la base de datos
-const totales = ref({ docentes: 0, espacios: 0, grupos: 0, horarios: 0 });
+// Agregamos 'asistencias' al objeto de totales
+const totales = ref({ docentes: 0, espacios: 0, grupos: 0, horarios: 0, asistencias: 0 });
 
-// Lógica para cargar las estadísticas
 const cargarTotales = async () => {
     try {
-        // Hacemos las peticiones en paralelo para que sea muy rápido
-        const [resDoc, resEsp, resGru, resHor] = await Promise.all([
+        const [resDoc, resEsp, resGru, resHor, resAsis] = await Promise.all([
             axios.get('/api/docentes'),
             axios.get('/api/espacios'),
             axios.get('/api/grupos'),
-            axios.get('/api/horarios')
+            axios.get('/api/horarios'),
+            axios.get('/api/asistencias') // <--- Nueva petición
         ]);
         
-        // Asignamos la longitud de cada arreglo al total
+        // Filtramos las asistencias para contar solo las que se hicieron el día de hoy
+        const hoy = new Date().toISOString().split('T')[0];
+        const asistenciasHoy = resAsis.data.filter(a => a.fecha === hoy).length;
+
         totales.value = {
             docentes: resDoc.data.length,
             espacios: resEsp.data.length,
             grupos: resGru.data.length,
-            horarios: resHor.data.length
+            horarios: resHor.data.length,
+            asistencias: asistenciasHoy
         };
     } catch (error) {
         console.error("Error al cargar estadísticas:", error);
@@ -93,15 +104,14 @@ const cargarTotales = async () => {
 };
 
 const descargarTodo = () => { 
+    // Asegúrate de que esta ruta apunte a tu ConsolidadoExport que incluye los Pagos
     window.open('/api/reporte-general', '_blank'); 
 };
 
 const prepararPDF = () => {
-    // Abre el PDF en una nueva pestaña (si usaste stream) o dispara la descarga directa
     window.open('/api/reporte-pdf', '_blank'); 
 };
 
-// Ejecutar al entrar a la pantalla
 onMounted(cargarTotales);
 </script>
 
@@ -145,4 +155,13 @@ onMounted(cargarTotales);
 
 .btn-main-pdf { background-color: var(--ugm-red); box-shadow: 0 4px 15px rgba(209, 16, 26, 0.3); }
 .btn-main-pdf:hover { background-color: #b00d15; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(209, 16, 26, 0.4); }
+.bg-ugm-red { background: linear-gradient(135deg, #d1101a, #b00d15); }
+
+/* Ajuste opcional para que 5 tarjetas se acomoden mejor */
+.stats-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 15px; 
+  margin-bottom: 40px; 
+}
 </style>

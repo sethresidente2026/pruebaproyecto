@@ -7,6 +7,7 @@ import Grupos from '../views/Grupos.vue';
 import Horarios from '../views/Horarios.vue';
 import Login from '../views/Login.vue';
 import Asistencias from '../views/Asistencias.vue';
+import Actividades from '../views/Actividades.vue';
 
 const routes = [
     { 
@@ -50,6 +51,12 @@ const routes = [
     component: Asistencias,
     meta: { requiresAuth: true }
 },
+{
+path: '/actividades',
+    name: 'actividades',
+    component: Actividades,
+    meta: { requiresAuth: true }
+}
 ];
 
 const router = createRouter({

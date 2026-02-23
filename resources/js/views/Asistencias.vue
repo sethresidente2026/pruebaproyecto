@@ -11,8 +11,8 @@
           <i class="fa-solid fa-clipboard-user"></i> Pasar Lista
         </button>
         <button @click="descargarReporte" class="btn-excel-top" title="Descargar cálculo de clases">
-  <i class="fa-solid fa-file-invoice-dollar"></i> Reporte de Pagos
-</button>
+          <i class="fa-solid fa-file-invoice-dollar"></i> Reporte de Pagos
+        </button>
       </div>
     </div>
 
@@ -24,7 +24,7 @@
     </div>
 
     <div class="table-responsive">
-      <table class="custom-table" v-if="listaFiltrada.length > 0">
+      <table class="custom-table" v-if="cargando || listaFiltrada.length > 0">
         <thead>
           <tr>
             <th>Fecha</th>
@@ -35,7 +35,23 @@
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        
+        <tbody v-if="cargando">
+          <tr v-for="n in 5" :key="'skeleton-'+n">
+            <td>
+              <div class="skeleton-box width-medium" style="margin-bottom: 5px;"></div>
+            </td>
+            <td>
+              <div class="skeleton-box width-large"></div>
+            </td>
+            <td><div class="skeleton-box width-large" style="border-radius: 8px;"></div></td>
+            <td><div class="skeleton-box width-small" style="border-radius: 15px;"></div></td>
+            <td><div class="skeleton-box width-medium" style="border-radius: 8px;"></div></td>
+            <td><div class="skeleton-box width-small" style="margin: 0 auto;"></div></td>
+          </tr>
+        </tbody>
+
+        <tbody v-else>
           <tr v-for="item in listaFiltrada" :key="item.id">
             <td class="id-cell"><i class="fa-regular fa-calendar text-muted"></i> {{ formatearFecha(item.fecha) }}</td>
             <td>
@@ -69,7 +85,8 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="sin-datos">
+      
+      <div v-if="!cargando && listaFiltrada.length === 0" class="sin-datos">
         <i class="fa-solid fa-clipboard-list empty-icon"></i>
         <p>No hay pases de lista registrados...</p>
       </div>
@@ -139,7 +156,7 @@
           <div class="modal-footer">
             <button type="button" @click="cerrarModal" class="btn-cancelar">Cancelar</button>
             <button type="submit" class="btn-guardar" :disabled="enviando">
-              <i class="fa-solid fa-floppy-disk"></i>
+              <i :class="enviando ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-floppy-disk'"></i>
               {{ enviando ? 'Guardando...' : 'Registrar Asistencia' }}
             </button>
           </div>
@@ -164,6 +181,7 @@ const errores = ref({});
 const enviando = ref(false);
 const mostrarModal = ref(false);
 const busqueda = ref('');
+const cargando = ref(true); // 🔴 Variable para el Skeleton Loader
 
 const listaFiltrada = computed(() => {
   const termino = busqueda.value.toLowerCase();
@@ -172,10 +190,13 @@ const listaFiltrada = computed(() => {
     (a.docente_titular?.nombre + ' ' + a.docente_titular?.apellidos).toLowerCase().includes(termino)
   );
 });
+
 const descargarReporte = () => {
-    window.open('/api/reportes/pagos', '_blank');
+    window.location.href = '/api/reportes/pagos'; // 🔴 Descarga directa sin abrir ventana en blanco
 };
+
 const inicializarDatos = async () => {
+    cargando.value = true;
     try {
         const [resAsistencias, resGrupos, resDocentes] = await Promise.all([
             axios.get('/api/asistencias'), 
@@ -185,7 +206,11 @@ const inicializarDatos = async () => {
         asistencias.value = resAsistencias.data;
         grupos.value = resGrupos.data;
         docentes.value = resDocentes.data;
-    } catch (error) { console.error("Error al cargar datos:", error); }
+    } catch (error) { 
+        console.error("Error al cargar datos:", error); 
+    } finally {
+        cargando.value = false;
+    }
 };
 
 const formatearFecha = (fechaString) => {
@@ -240,16 +265,26 @@ onMounted(inicializarDatos);
 </script>
 
 <style scoped>
-/* Hereda tus estilos de Grupos.vue y agrega estos para las insignias de asistencia */
+/* =========================================
+   Diseño General
+   ========================================= */
 .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .title-group h1 { color: var(--ugm-dark); font-size: 1.8rem; margin: 0; }
-.badge-count { background: #f0f2f5; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; color: #666; font-weight: bold; }
+.badge-count { background: #f0f2f5; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; color: #666; font-weight: bold; margin-top: 5px; display: inline-block; }
+
+.header-actions { display: flex; gap: 10px; }
 
 .filter-bar { margin-bottom: 20px; display: flex; gap: 15px; }
 .search-box { position: relative; width: 100%; max-width: 400px; }
 .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; }
 .search-box input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e0e4e8; border-radius: 8px; font-size: 0.95rem; }
+.search-box input:focus { outline: none; border-color: var(--ugm-red); box-shadow: 0 0 0 3px rgba(209, 16, 26, 0.1); }
 
+/* Contenedor Responsivo para la Tabla */
+.table-responsive { width: 100%; overflow-x: auto; background: #fff; border-radius: 8px; }
+.custom-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+
+/* Tabla y Textos */
 .id-cell { font-weight: bold; color: #576574; }
 .item-info { display: flex; flex-direction: column; gap: 4px; }
 .main-text { font-weight: 700; color: #2c3e50; font-size: 1rem; }
@@ -266,28 +301,104 @@ onMounted(inicializarDatos);
 .estado-sustitucion { background: #f4ecf8; color: #8e44ad; }
 
 .actions-cell { text-align: center; white-space: nowrap; }
-.btn-icon.delete { color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 1.1rem; }
+.btn-icon.delete { color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 1.1rem; transition: 0.2s;}
+.btn-icon:hover { transform: scale(1.2); }
 
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-.modal-card { background: #fff; width: 100%; max-width: 600px; border-radius: 12px; padding: 30px; }
+/* Modal y Formulario */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); padding: 15px;}
+.modal-card { background: #fff; width: 100%; max-width: 600px; border-radius: 12px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: modalFadeIn 0.3s ease;}
+@keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
 .modal-header h2 { margin: 0; font-size: 1.4rem; color: #2c3e50; }
-.btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #95a5a6; }
+.btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #95a5a6; transition: 0.2s;}
+.btn-close:hover { color: #e74c3c; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; font-size: 0.9rem;}
-input, select { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box;}
+input, select { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box; background: #fafbfc; font-size: 0.95rem;}
+input:focus, select:focus { outline: none; border-color: #c0392b; }
 .input-error { border-color: #e74c3c; }
 .text-error { color: #e74c3c; font-size: 0.8rem; margin-top: 5px; display: block; }
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;}
-.btn-guardar { background-color: var(--ugm-red, #c0392b); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-.btn-cancelar { background-color: #f1f2f6; color: #576574; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
+.btn-guardar { background-color: var(--ugm-red, #c0392b); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
+.btn-guardar:hover:not(:disabled) { background-color: #b00d15; transform: translateY(-1px); }
+.btn-guardar:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-cancelar { background-color: #f1f2f6; color: #576574; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s;}
+.btn-cancelar:hover { background-color: #dfe4ea; }
 
-.btn-create { background: var(--ugm-red, #c0392b); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-.btn-excel-top { background: #27ae60; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+/* Botones Superiores */
+.btn-create { background: var(--ugm-red, #c0392b); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;}
+.btn-create:hover { background: #b00d15; box-shadow: 0 4px 10px rgba(209, 16, 26, 0.2); }
+.btn-excel-top { background: #27ae60; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
 .btn-excel-top:hover { background: #219653; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2); }
 
 .sin-datos { text-align: center; color: #95a5a6; padding: 40px 20px; }
 .empty-icon { font-size: 3rem; margin-bottom: 15px; color: #bdc3c7; }
+
+/* =========================================
+   SKELETON LOADERS (Efecto de Carga)
+   ========================================= */
+.skeleton-box {
+  height: 18px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-box::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.4) 20%, rgba(255, 255, 255, 0.6) 60%, rgba(255, 255, 255, 0));
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.width-small { width: 70px; }
+.width-medium { width: 120px; }
+.width-large { width: 180px; }
+
+/* =========================================
+   DISEÑO RESPONSIVO (Móviles y Tablets)
+   ========================================= */
+@media (max-width: 768px) {
+  .module-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn-create, .btn-excel-top {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .title-group h1 {
+    font-size: 1.5rem;
+  }
+  
+  .search-box {
+    max-width: 100%;
+  }
+
+  .table-responsive {
+    border: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  /* Formulario a 1 columna en móvil */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-group[style*="grid-column: span 2"] {
+    grid-column: span 1 !important;
+  }
+}
 </style>

@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('actividades', function (Blueprint $table) {
             $table->id();
         $table->string('nombre', 100);
-        $table->foreignId('categoria_id')->constrained('categorias')->onDelete('cascade');
+        
+$table->foreignId('categoria_id')->nullable()->constrained('categorias')->onDelete('set null');
 
             $table->timestamps();
         });
