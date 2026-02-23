@@ -87,9 +87,10 @@ INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, 
 	('Q5NMBl6DnyHgTLtPloId0Zy9bwBtb7OCy5AEqETv', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoiVjlSeWV5SE5VWXdSSEtzN2ZrdFdBRWR5b1hGN21zcWtDUURkTmM4ZyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1771529456),
 	('YW5ZrIPmVXduNx6NOdl5xQRt3Jc2M4vd2LsUqttT', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiN0hVREZQZmdYZmRKN2g3enQ3dnlpZHNrMzAyS2pDc2NNQkM3SUhqWCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjk6Il9wcmV2aW91cyI7YToyOntzOjM6InVybCI7czozMzoiaHR0cDovL3Npc3RlbWFwcmFjdGljYS50ZXN0L2xvZ2luIjtzOjU6InJvdXRlIjtOO319', 1771529166);
 
--- Volcando datos para la tabla mydb.users: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla mydb.users: ~1 rows (aproximadamente)
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-	(1, 'Admin UGM', 'admin@ugm.edu.mx', NULL, '$2y$12$Uxpaen4yfmgeJghLiamUg.N5pVFmMUEa5cuGEYKvK8rQwB7Vcnkdm', NULL, '2026-02-19 22:28:03', '2026-02-19 22:28:03');
+	(1, 'Admin UGM', 'admin@ugm.edu.mx', NULL, '$2y$12$Uxpaen4yfmgeJghLiamUg.N5pVFmMUEa5cuGEYKvK8rQwB7Vcnkdm', NULL, '2026-02-19 22:28:03', '2026-02-19 22:28:03'),
+	(2, 'YO', 'prueba@gmail.com', NULL, '$2y$12$S/DGnJJxj.bdJgc9Osngm.iaNLisTl/QtdjX6bT6j1C0W/sPbCY0m', NULL, '2026-02-23 21:03:17', '2026-02-23 21:03:17');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
