@@ -22,6 +22,10 @@
     <router-link to="/horarios" class="nav-item">
         <i class="fa-solid fa-calendar-days"></i> Horarios
     </router-link>
+    <router-link to="/asistencias" class="nav-link" active-class="active">
+    <i class="fa-solid fa-clipboard-user"></i>
+    <span>Asistencias</span>
+</router-link>
     
     <div class="nav-divider"></div>
     

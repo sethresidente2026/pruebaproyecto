@@ -21,13 +21,13 @@ class GrupoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre'=>'required|string',
+            'nombre' => 'required|string|max:255',
             'cupo_maximo'=> 'required|integer',
             'actividad_id'=> 'required|exists:actividades,id',
             'docente_id'=> 'required|exists:docentes,id',
             'ciclo_id'=>'required|exists:ciclos_escolares,id',
-            'nivel_id'=> 'nullable|exists:niveles,id'
-
+            'nivel_id'=> 'nullable|exists:niveles,id',
+            'nivel' => 'required|in:Preescolar,Primaria,Secundaria,Bachillerato,Licenciatura,Mixto'
             ]);
             $grupo = Grupo::create($request->all());
             return response()->json([
@@ -53,14 +53,25 @@ class GrupoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-      $grupo=Grupo::find($id);
-      if(!$grupo)  return response()->json(['mensaje'=> 'Grupo no encontrado'],404);
-    $grupo->update($request->all());
-    return response()->json([
-        'mensaje'=>'Grupo Actualizado',
-        'grupo'=>$grupo
-    ],200);
-       
+        $grupo = Grupo::find($id);
+        if(!$grupo) return response()->json(['mensaje'=> 'Grupo no encontrado'], 404);
+
+        // 🔴 Agrega la validación aquí también
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'cupo_maximo'=> 'required|integer',
+            'actividad_id'=> 'required|exists:actividades,id',
+            'docente_id'=> 'required|exists:docentes,id',
+            'ciclo_id'=>'required|exists:ciclos_escolares,id',
+            'nivel' => 'required|in:Preescolar,Primaria,Secundaria,Bachillerato,Licenciatura,Mixto'
+        ]);
+
+        $grupo->update($request->all());
+
+        return response()->json([
+            'mensaje'=>'Grupo Actualizado',
+            'grupo'=>$grupo
+        ], 200);
     }
     /**
      * Remove the specified resource from storage.

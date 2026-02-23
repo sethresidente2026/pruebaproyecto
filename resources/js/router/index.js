@@ -6,7 +6,7 @@ import Docentes from '../views/Docentes.vue';
 import Grupos from '../views/Grupos.vue';
 import Horarios from '../views/Horarios.vue';
 import Login from '../views/Login.vue';
-
+import Asistencias from '../views/Asistencias.vue';
 
 const routes = [
     { 
@@ -24,26 +24,32 @@ const routes = [
         path: '/docentes', 
         name: 'docentes', 
         component: () => import('../views/Docentes.vue'),
-        meta: { requiresAuth: true } // 🔒 Etiqueta de seguridad
+        meta: { requiresAuth: true } 
     },
     { 
         path: '/espacios', 
         name: 'espacios', 
         component: () => import('../views/Espacios.vue'),
-        meta: { requiresAuth: true } // 🔒 Etiqueta de seguridad
+        meta: { requiresAuth: true } 
     },
     { 
         path: '/grupos', 
         name: 'grupos', 
         component: () => import('../views/Grupos.vue'),
-        meta: { requiresAuth: true } // 🔒 Etiqueta de seguridad
+        meta: { requiresAuth: true } 
     },
     { 
         path: '/horarios', 
         name: 'horarios', 
         component: () => import('../views/Horarios.vue'),
-        meta: { requiresAuth: true } // 🔒 Etiqueta de seguridad
-    }
+        meta: { requiresAuth: true } 
+    },
+    {
+    path: '/asistencias',
+    name: 'asistencias',
+    component: Asistencias,
+    meta: { requiresAuth: true }
+},
 ];
 
 const router = createRouter({

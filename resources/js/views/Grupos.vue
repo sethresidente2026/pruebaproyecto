@@ -98,7 +98,24 @@
               <input type="text" v-model="nuevoGrupo.nombre" placeholder="Ej. Selectivo Varonil" :class="{'input-error': errores.nombre}">
               <span class="text-error" v-if="errores.nombre">{{ errores.nombre[0] }}</span>
             </div>
-
+            <div class="mb-3">
+    <label for="nivel" class="form-label">Nivel Educativo</label>
+    <select 
+        id="nivel" 
+        class="form-select" 
+        v-model="nuevoGrupo.nivel" 
+        required
+    >
+        <option value="" disabled>Seleccione un nivel...</option>
+        <option value="Preescolar">Preescolar</option>
+        <option value="Primaria">Primaria</option>
+        <option value="Secundaria">Secundaria</option>
+        <option value="Bachillerato">Bachillerato</option>
+        <option value="Licenciatura">Licenciatura</option>
+        <option value="Mixto">Grupo Mixto (Varios niveles)</option>
+    </select>
+    <span v-if="errores?.nivel" class="text-error">{{ errores.nivel[0] }}</span>
+</div>
             <div class="form-group">
               <label>Cupo Máximo:</label>
               <input type="number" v-model="nuevoGrupo.cupo_maximo" placeholder="Ej. 20" :class="{'input-error': errores.cupo_maximo}">
@@ -166,7 +183,7 @@ const docentes = ref([]);
 const ciclos = ref([]);
 const niveles = ref([]);
 
-const nuevoGrupo = ref({ nombre: '', cupo_maximo: '', actividad_id: '', docente_id: '', ciclo_id: '', nivel_id: '' });
+const nuevoGrupo = ref({ nombre: '', cupo_maximo: '', actividad_id: '', docente_id: '', ciclo_id: '', nivel: '' });
 const errores = ref({});
 const enviando = ref(false);
 const editandoId = ref(null);
@@ -200,7 +217,7 @@ const inicializarDatos = async () => {
 
 const abrirModalCrear = () => {
     editandoId.value = null;
-    nuevoGrupo.value = { nombre: '', cupo_maximo: '', actividad_id: '', docente_id: '', ciclo_id: '', nivel_id: '' };
+    nuevoGrupo.value = { nombre: '', cupo_maximo: '', actividad_id: '', docente_id: '', ciclo_id: '', nivel: '' };
     errores.value = {};
     mostrarModal.value = true;
 };
