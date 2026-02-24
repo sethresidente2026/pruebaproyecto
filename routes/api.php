@@ -33,7 +33,9 @@ Route::get('reportes/docentes', [ReporteController::class, 'exportarDocentes']);
     Route::apiResource('grupos', GrupoController::class);
     Route::apiResource('horarios', HorarioController::class);
     Route::apiResource('asistencias', AsistenciaController::class);
-    Route::apiResource('actividades', ActividadController::class);
+   Route::apiResource('actividades', ActividadController::class)->parameters([
+    'actividades' => 'actividad' 
+]);
 
     
     Route::get('/ciclos', function () { return \App\Models\CicloEscolar::all(); });

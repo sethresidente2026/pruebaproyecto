@@ -7,8 +7,30 @@
         /* Estilos estrictos para impresión PDF */
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; color: #333; }
         
-        /* Cabecera Institucional */
-        .header { text-align: center; border-bottom: 2px solid #D1101A; padding-bottom: 15px; margin-bottom: 20px; position: relative; }
+        /* Cabecera Institucional (Posicionamiento para Logo y Título) */
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #D1101A; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+            position: relative; /* Clave para el logo absoluto */
+            min-height: 70px;
+        }
+        
+        /* El Logo en la esquina izquierda */
+        .logo-pdf {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 85px; /* Tamaño del logo */
+        }
+
+        /* Área central para que el título no estorbe con el logo */
+        .title-area {
+            margin-left: 90px;
+            margin-right: 90px;
+        }
+
         .title { font-size: 20px; font-weight: bold; color: #2C3E50; margin: 0; letter-spacing: 1px; }
         .subtitle { font-size: 14px; color: #7f8c8d; margin: 5px 0 10px 0; }
         .badge-rojo { background-color: #D1101A; color: white; padding: 4px 10px; font-weight: bold; font-size: 12px; border-radius: 4px; }
@@ -38,7 +60,7 @@
 <body>
 
     <div class="footer">
-        <table style="width: 100%; border:none;">
+        <table style="width: 100%; border:none; margin: 0;">
             <tr>
                 <td style="border:none; padding:0;">Sistema de Gestión Académica - UGM Rectoría Centro</td>
                 <td style="border:none; padding:0; text-align:right;">Página <span class="page-number"></span></td>
@@ -47,9 +69,15 @@
     </div>
 
     <div class="header">
-        <h1 class="title">UNIVERSIDAD DEL GOLFO DE MÉXICO</h1>
-        <h2 class="subtitle">Rectoría Centro</h2>
-        <span class="badge-rojo">REPORTE DE OPERACIÓN ACADÉMICA</span>
+        @if($logo)
+            <img src="{{ $logo }}" class="logo-pdf">
+        @endif
+        
+        <div class="title-area">
+            <h1 class="title">UNIVERSIDAD DEL GOLFO DE MÉXICO</h1>
+            <h2 class="subtitle">Rectoría Centro</h2>
+            <span class="badge-rojo">REPORTE DE OPERACIÓN ACADÉMICA</span>
+        </div>
     </div>
 
     <table class="meta-info">
@@ -103,7 +131,9 @@
         </tbody>
     </table>
 
-    <div class="page-break"></div> <div class="section-title">3. Catálogo de Grupos</div>
+    <div class="page-break"></div> 
+
+    <div class="section-title">3. Catálogo de Grupos</div>
     <table>
         <thead>
             <tr>
@@ -116,8 +146,10 @@
         <tbody>
             @forelse($grupos as $grupo)
             <tr>
-                <td><strong>{{ $grupo->nombre }}</strong> ({{ $grupo->actividad->nombre ?? 'N/A' }})</td>
-                <td>{{ $grupo->nivel->nombre ?? '' }} - {{ $grupo->ciclo->nombre ?? '' }}</td>
+                <td><strong>{{ $grupo->nombre }}</strong> <br> <span style="font-size: 9px; color: #7f8c8d;">({{ $grupo->actividad->nombre ?? 'N/A' }})</span></td>
+                
+                <td>{{ $grupo->nivelEducativo->nombre ?? 'N/A' }} <br> <span style="font-size: 9px; color: #7f8c8d;">{{ $grupo->ciclo->nombre ?? 'N/A' }}</span></td>
+                
                 <td>{{ $grupo->cupo_maximo }} lugares</td>
                 <td>{{ $grupo->docente->nombre ?? '' }} {{ $grupo->docente->apellidos ?? 'Sin asignar' }}</td>
             </tr>

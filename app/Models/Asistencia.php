@@ -9,22 +9,24 @@ class Asistencia extends Model
    use HasFactory;
 
     protected $fillable = [
-        'grupo_id',
-        'docente_id',
-        'docente_sustituto_id',
-        'fecha',
+       'fecha',
         'estado',
-        'observaciones'
+        'observaciones',
+        'grupo_id',
+        'docente_id', // En la base de datos se llama docente_id
+        'docente_sustituto_id',
     ];
     public function grupo()
     {
-        return $this->belongsTo(Grupo::class);
+        return $this->belongsTo(Grupo::class,'grupo_id');
     }
-    public function docentetitular()
+
+
+    public function docente_titular()
     {
         return $this->belongsTo(Docente::class,'docente_id');
     }
-    public function docenteSustituto()
+    public function docente_Sustituto()
     {
         return $this->belongsTo(Docente::class, 'docente_sustituto_id');
     }

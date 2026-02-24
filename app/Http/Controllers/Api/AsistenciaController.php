@@ -1,50 +1,47 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Asistencia;
-use App\Exports\ReportePagosExport;
-use Maatwebsite\Excel\Facades\Excel;
-use Carbon\Carbon;
+use App\Http\Requests\StoreAsistenciaRequest;
+use App\Services\AsistenciaService;
+
 class AsistenciaController extends Controller
 {
-public function index()
-{
-    $asistencia=Asistencia::with(['grupo', 'docenteTitular', 'docenteSustituto'])
-    ->orderBy('fecha','desc')
-    ->get();
-    return response()->json($asistencia,200);
-}
-public function store(Request $request)
-{
-    $request->validate([
-     'grupo_id' => 'required|exists:grupos,id',
-            'docente_id' => 'required|exists:docentes,id',
-            'fecha' => 'required|date',
-            'estado' => 'required|in:Asistió,Falta,Retardo,Sustitución',
-            'docente_sustituto_id' => 'nullable|exists:docentes,id',
-            'observaciones' => 'nullable|string'
-    ]);
-    $asistencia = Asistencia::create($request->all());
-    return response()->json([
-    'mensaje'=>'Asistencia registrada correctamentes',    
-    'asistencia'=> $asistencia,
-    ],200);
-}
-public function destroy(string $id)
+    protected $asistenciaService;
+
+    public function __construct(AsistenciaService $asistenciaService)
     {
-        $asistencia = Asistencia::find($id);
-        if(!$asistencia) return response()->json(['mensaje' => 'Registro no encontrado'], 404);
+        $this->asistenciaService = $asistenciaService;
+    }
+
+    public function index()
+    {
+        return response()->json($this->asistenciaService->obtenerTodos(), 200);
+    }
+
+    public function store(StoreAsistenciaRequest $request)
+    {
         
-        $asistencia->delete();
-        return response()->json(['mensaje' => 'Registro eliminado'], 200);
+        $asistencia = $this->asistenciaService->crear($request->validated());
+
+        return response()->json([
+            'mensaje' => 'Asistencia registrada correctamente',
+            'data'    => $asistencia
+        ], 201);
     }
 
     
+    public function destroy(Asistencia $asistencia)
+    {
+        $this->asistenciaService->eliminar($asistencia);
+        
+        return response()->json(['mensaje' => 'Registro eliminado'], 200);
+    }
+
     public function exportarPagos()
     {
-        $fecha = Carbon::now()->format('d_m_Y');
-        return Excel::download(new ReportePagosExport, "Reporte_Docentes_UGM_{$fecha}.xlsx");
+        return $this->asistenciaService->exportarReportePagos();
     }
 }

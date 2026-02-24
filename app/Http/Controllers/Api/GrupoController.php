@@ -3,84 +3,62 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Grupo;
+use App\Http\Requests\StoreGrupoRequest;
+use App\Http\Requests\UpdateGrupoRequest;
+use App\Services\GrupoService;
+
 class GrupoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-  public function index()
-    {
-        // Con "with" le exigimos a Laravel que incluya los datos de esas 4 tablas
-        return Grupo::with(['docente', 'actividad', 'ciclo', 'nivel'])->get();
-    }
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'cupo_maximo'=> 'required|integer',
-            'actividad_id'=> 'required|exists:actividades,id',
-            'docente_id'=> 'required|exists:docentes,id',
-            'ciclo_id'=>'required|exists:ciclos_escolares,id',
-            'nivel_id'=> 'nullable|exists:niveles,id',
-            'nivel' => 'required|in:Preescolar,Primaria,Secundaria,Bachillerato,Licenciatura,Mixto'
-            ]);
-            $grupo = Grupo::create($request->all());
-            return response()->json([
-            'mensaje'=> 'Grupo Creado con exito',   
-            'grupo'=> $grupo
-            ],200);
+    protected $grupoService;
 
+    public function __construct(GrupoService $grupoService)
+    {
+        $this->grupoService = $grupoService;
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function index()
     {
-        $grupo= Grupo::with(['actividad','docente','ciclo','horarios.espacio'])->find( $id );
-        if(!$grupo){
-            return response()->json(['mensaje'=>'Grupo no encontrado'],404);
-       }return response()->json($grupo,200);
-     }
+        return response()->json($this->grupoService->obtenerTodos(), 200);
+    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function store(StoreGrupoRequest $request)
     {
-        $grupo = Grupo::find($id);
-        if(!$grupo) return response()->json(['mensaje'=> 'Grupo no encontrado'], 404);
-
-        // 🔴 Agrega la validación aquí también
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'cupo_maximo'=> 'required|integer',
-            'actividad_id'=> 'required|exists:actividades,id',
-            'docente_id'=> 'required|exists:docentes,id',
-            'ciclo_id'=>'required|exists:ciclos_escolares,id',
-            'nivel' => 'required|in:Preescolar,Primaria,Secundaria,Bachillerato,Licenciatura,Mixto'
-        ]);
-
-        $grupo->update($request->all());
+        // Pasamos únicamente la data validada
+        $grupo = $this->grupoService->crear($request->validated());
 
         return response()->json([
-            'mensaje'=>'Grupo Actualizado',
-            'grupo'=>$grupo
+            'mensaje' => 'Grupo registrado correctamente',
+            'data'    => $grupo
+        ], 201);
+    }
+
+    public function show(Grupo $grupo)
+    {
+        // Entregamos el grupo con sus relaciones cargadas
+        return response()->json($grupo->load(['actividad', 'docente', 'ciclo', 'nivel']), 200);
+    }
+
+    public function update(UpdateGrupoRequest $request, Grupo $grupo)
+    {
+        
+        $grupoActualizado = $this->grupoService->actualizar($grupo, $request->validated());
+
+        return response()->json([
+            'mensaje' => 'Grupo actualizado correctamente',
+            'data'    => $grupoActualizado
         ], 200);
     }
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+
+    public function destroy(Grupo $grupo)
     {
-        $grupo =Grupo::find($id);
-        if(!$grupo) return response()->json(['mensaje'=> 'Grupo no encontrad'],200);
-        $grupo->delete();
-        return response()->json(['mensaje'=> 'Grupo eliminado correctamente'],200);
+        $this->grupoService->eliminar($grupo);
+        
+        return response()->json(['mensaje' => 'Grupo eliminado correctamente'], 200);
+    }
+
+    public function exportarExcel()
+    {
+        return $this->grupoService->exportarExcel();
     }
 }

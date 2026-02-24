@@ -14,7 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Docente;
 use App\Models\Grupo;
 use App\Models\Horario;
-
+use Illuminate\Support\Facades\File;
 class ReporteController extends Controller
 {
     
@@ -39,19 +39,38 @@ class ReporteController extends Controller
     }
 
     public function generarPDF(){
-            $docentes=Docente::all();
-            $grupos = Grupo::with(['docente', 'actividad', 'ciclo', 'nivel'])->get();
-            $horarios = Horario::with(['grupo.docente', 'espacio'])->orderBy('dia_semana')->orderBy('hora_inicio')->get();
-            $fecha = Carbon::now()->format('d/m/Y');
-
-        // 2. Cargamos la vista y le pasamos las variables
-             $pdf = Pdf::loadView('pdf.reporte_integral', compact('docentes', 'grupos', 'horarios', 'fecha'));
+        // 1. Obtenemos todos los datos optimizados con Eager Loading (para que el PDF sea rápido)
+        $docentes = Docente::all();
         
-        // 3. Configuramos el papel (A4, formato vertical)
-                $pdf->setPaper('A4', 'portrait');
+        // 🔴 Usamos 'nivelEducativo' como lo corregimos antes
+        $grupos = Grupo::with(['actividad', 'docente', 'ciclo', 'nivelEducativo'])->get();
+        
+        // Traemos los horarios con la info del grupo y del espacio
+        $horarios = Horario::with(['grupo.actividad', 'grupo.docente', 'espacio'])->get();
 
-        // 4. Forzamos la descarga con un nombre corporativo
-                $nombreArchivo = "Reporte_Operacion_UGM_" . Carbon::now()->format('d_m_Y') . ".pdf";
-                return $pdf->download($nombreArchivo);
+        // 2. Convertimos el Logo de la UGM a Base64
+        // Asegúrate de que la imagen exista en public/img/logo-ugm.png
+        $rutaLogo = public_path('img/logo-ugm.png');
+        $logoBase64 = '';
+        
+        if (File::exists($rutaLogo)) {
+            $logoData = base64_encode(file_get_contents($rutaLogo));
+            $logoBase64 = 'data:image/png;base64,' . $logoData;
+        }
+
+        // 3. Cargamos la vista de Blade y le pasamos todas las variables
+        $pdf = Pdf::loadView('pdf.reporte_integral', [
+            'logo'     => $logoBase64,
+            'fecha'    => now()->format('d/m/Y H:i'),
+            'docentes' => $docentes,
+            'grupos'   => $grupos,
+            'horarios' => $horarios,
+        ]);
+
+        // Opcional: Configurar el tamaño del papel y la orientación
+        $pdf->setPaper('A4', 'portrait');
+
+        // 4. Descargamos el archivo
+        return $pdf->download('Reporte_Integral_UGM.pdf');
     }
 }

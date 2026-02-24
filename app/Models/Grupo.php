@@ -22,7 +22,8 @@ class Grupo extends Model
         return $this->belongsTo(CicloEscolar::class, 'ciclo_id'); 
     }
     
-    public function nivel() { 
-        return $this->belongsTo(Nivel::class, 'nivel_id'); 
-    }
+  public function nivelEducativo() 
+{
+    return $this->belongsTo(Nivel::class, 'nivel_id'); 
+}
 }

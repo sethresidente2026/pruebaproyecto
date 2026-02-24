@@ -3,91 +3,60 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Actividad;
+use App\Http\Requests\StoreActividadRequest;
+use App\Http\Requests\UpdateActividadRequest;
+use App\Services\ActividadService;
+use Exception;
+
 class ActividadController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected $actividadService;
+
+    public function __construct(ActividadService $actividadService)
     {
-       return response()->json(Actividad::orderBy('nombre', 'asc')->get(), 200);
+        $this->actividadService = $actividadService;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function index()
     {
-        $request->validate([
-            'nombre' => 'required|string|unique:actividades,nombre|max:100',
-        ], [
-            'nombre.unique' => 'Esta actividad ya está registrada.',
-            'nombre.required' => 'El nombre es obligatorio.'
-        ]);
+        return response()->json($this->actividadService->obtenerTodos(), 200);
+    }
 
-        $actividad = Actividad::create($request->all());
+    public function store(StoreActividadRequest $request)
+    {
+        $actividad = $this->actividadService->crear($request->validated());
 
         return response()->json([
             'mensaje' => 'Actividad creada con éxito',
-            'actividad' => $actividad
+            'data'    => $actividad
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Actividad $actividad)
     {
-        //
+        return response()->json($actividad, 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(UpdateActividadRequest $request, Actividad $actividad)
     {
-        
-        $actividad = Actividad::find($id);
-
-        if (!$actividad) {
-            return response()->json(['mensaje' => 'Actividad no encontrada'], 404);
-        }
-
-        $request->validate([
-            // Validamos que el nombre sea único, pero ignoramos el ID actual
-            'nombre' => 'required|string|max:100|unique:actividades,nombre,' . $id,
-        ], [
-            'nombre.unique' => 'Ya existe otra actividad con este nombre.',
-            'nombre.required' => 'El nombre no puede estar vacío.'
-        ]);
-
-        $actividad->update($request->all());
+        $actividadActualizada = $this->actividadService->actualizar($actividad, $request->validated());
 
         return response()->json([
             'mensaje' => 'Actividad actualizada correctamente',
-            'actividad' => $actividad
+            'data'    => $actividadActualizada
         ], 200);
     }
 
-    public function destroy(string $id)
+    public function destroy(Actividad $actividad)
     {
-        $actividad = Actividad::find($id);
-
-        if (!$actividad) {
-            return response()->json(['mensaje' => 'Actividad no encontrada'], 404);
-        }
-
         try {
-            $actividad->delete();
+            $this->actividadService->eliminar($actividad);
             return response()->json(['mensaje' => 'Actividad eliminada correctamente'], 200);
-        } catch (\Exception $e) {
-            // Esto evita que se borre una actividad que ya tiene grupos asignados
-            return response()->json([
-                'mensaje' => 'No se puede eliminar: Esta actividad ya tiene grupos asignados.'
-            ], 422);
+            
+        } catch (Exception $e) {
+            // 🔴 Atrapamos el error de la llave foránea y mandamos código 422
+            return response()->json(['mensaje' => $e->getMessage()], 422);
         }
     }
-    
 }
