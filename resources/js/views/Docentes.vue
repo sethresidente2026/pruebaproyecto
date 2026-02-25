@@ -149,7 +149,7 @@ const enviando = ref(false);
 const editandoId = ref(null);
 const mostrarModal = ref(false);
 const busqueda = ref('');
-const cargando = ref(true); // 🔴 Variable para el Skeleton Loader
+const cargando = ref(true); // Variable para el Skeleton Loader
 
 // Filtro Inteligente
 const listaFiltrada = computed(() => {
@@ -175,20 +175,26 @@ const obtenerDocentes = async () => {
 };
 
 const descargarExcel = () => {
-    // Aplicando la misma lógica directa que solucionó el 404 antes
     window.location.href = '/api/reportes/docentes';
 };
 
+
 const abrirModalCrear = () => {
-    editandoId.value = null;
+    editandoId.value = null; 
     nuevoDocente.value = { nombre: '', apellidos: '', email: '', estatus: 'Activo' };
     errores.value = {};
     mostrarModal.value = true;
 };
 
+
 const cargarParaEditar = (docente) => {
-    nuevoDocente.value = { ...docente };
-    editandoId.value = docente.id;
+    nuevoDocente.value = { 
+        nombre: docente.nombre, 
+        apellidos: docente.apellidos, 
+        email: docente.email, 
+        estatus: docente.estatus 
+    };
+    editandoId.value = docente.id;ro
     errores.value = {};
     mostrarModal.value = true;
 };
@@ -202,6 +208,7 @@ const guardarDocente = async () => {
     enviando.value = true;
     try {
         if (editandoId.value) {
+            // Petición PUT limpia, sin basuras en la URL ni en el body
             await axios.put(`/api/docentes/${editandoId.value}`, nuevoDocente.value);
         } else {
             await axios.post('/api/docentes', nuevoDocente.value);
@@ -235,7 +242,6 @@ const eliminarDocente = async (id) => {
 
 onMounted(obtenerDocentes);
 </script>
-
 <style scoped>
 /* =========================================
    Diseño General

@@ -4,14 +4,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Importa tus controladores (Ojo con el de Asistencia)
-use App\Http\Controllers\Api\DocenteController;
-use App\Http\Controllers\Api\EspacioController;
-use App\Http\Controllers\Api\GrupoController;
-use App\Http\Controllers\Api\HorarioController;
+use App\Http\Controllers\Api\Catalogos\DocenteController;
+use App\Http\Controllers\Api\Catalogos\EspacioController;
+use App\Http\Controllers\Api\Operacion\GrupoController;
+use App\Http\Controllers\Api\Operacion\HorarioController;
 use App\Http\Controllers\Api\ReporteController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\AsistenciaController;
-use App\Http\Controllers\Api\ActividadController;
+use App\Http\Controllers\Api\Operacion\AsistenciaController;
+use App\Http\Controllers\Api\Catalogos\ActividadController;
 
 // RUTAS PÚBLICAS
 Route::post('login', [AuthController::class, 'login']);
