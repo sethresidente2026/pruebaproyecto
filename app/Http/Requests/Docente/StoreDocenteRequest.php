@@ -28,4 +28,17 @@ class StoreDocenteRequest extends FormRequest
             'estatus' => 'in:Activo,Inactivo,Baja Temporal'
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'nombre.required'    => 'El nombre del docente es obligatorio.',
+            'nombre.max'         => 'El nombre no puede exceder los 50 caracteres.',
+            'apellidos.required' => 'Los apellidos son obligatorios.',
+            'apellidos.max'      => 'Los apellidos no pueden exceder los 50 caracteres.',
+            'email.required'     => 'El correo electrónico es indispensable.',
+            'email.email'        => 'Por favor, ingresa una dirección de correo válida.',
+            'email.unique'       => 'Este correo ya está registrado por otro docente.',
+            'estatus.in'         => 'El estatus seleccionado no es válido.'
+        ];
+    }
 }

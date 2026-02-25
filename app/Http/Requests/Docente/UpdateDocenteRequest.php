@@ -19,4 +19,18 @@ class UpdateDocenteRequest extends FormRequest
             'estatus'   => 'in:Activo,Inactivo,Baja Temporal'
         ];
     }
+    public function messages()
+    {
+        return [
+            'nombre.required'    => 'Debes proporcionar un nombre.',
+            'nombre.max'         => 'El nombre es demasiado largo (máximo 50 caracteres).',
+            'apellidos.required' => 'Los apellidos son campos requeridos.',
+            'apellidos.max'      => 'Los apellidos no deben superar los 50 caracteres.',
+            'email.required'     => 'El correo electrónico es obligatorio para el contacto.',
+            'email.email'        => 'El formato del correo electrónico es incorrecto.',
+            'email.unique'       => 'Este correo ya pertenece a otro docente en el sistema.',
+            'estatus.in'         => 'Selecciona un estatus válido (Activo, Inactivo o Baja Temporal).'
+
+        ];
+    }
 }
