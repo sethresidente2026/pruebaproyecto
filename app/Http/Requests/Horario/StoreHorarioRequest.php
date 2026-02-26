@@ -11,12 +11,13 @@ class StoreHorarioRequest extends FormRequest
     public function rules()
     {
         return [
-            'grupo_id'   => 'required|exists:grupos,id',
-            'espacio_id' => 'required|exists:espacios,id',
-            'dia_semana' => 'required|string',
-            'hora_inicio'=> 'required|date_format:H:i',
-            'hora_fin'   => 'required|date_format:H:i|after:hora_inicio',
-        ];
+        'grupo_id'    => 'required|exists:grupos,id',
+        'espacio_id'  => 'required|exists:espacios,id',
+        'dias'        => 'required|array|min:1', 
+        'dias.*'      => 'string',              
+        'hora_inicio' => 'required|date_format:H:i',
+        'hora_fin'    => 'required|date_format:H:i|after:hora_inicio',
+    ];
     }
     public function messages()
     {

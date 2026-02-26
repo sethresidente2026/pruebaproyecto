@@ -9,6 +9,7 @@ use App\Repositories\Contracts\HorarioRepositoryInterface;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class HorarioService
 {
@@ -23,9 +24,25 @@ class HorarioService
 
     public function crear(array $datos)
     {
-        $this->verificarEmpalmes($datos);
-        return $this->horarioRepository-> crear($datos);
+       $horariosCreados = [];
 
+        
+        DB::transaction(function () use ($datos, &$horariosCreados) {
+            
+            
+            foreach ($datos['dias'] as $dia) {
+                
+               
+                $datosDia = $datos;
+                $datosDia['dia_semana'] = $dia; 
+                
+                
+                $this->verificarEmpalmes($datosDia);
+                
+               
+                $horariosCreados[] = $this->horarioRepository->crear($datosDia);
+            }
+        });
     }
 
     public function eliminar(Horario $horario)
@@ -40,17 +57,20 @@ class HorarioService
     }
 
    
-    private function verificarEmpalmes(array $datos)
+    private function verificarEmpalmes(array $datosDia)
     {
-        $grupo = Grupo::findOrFail($datos['grupo_id']);
-        $empalmevacio=$this->horarioRepository->buscarEmpalmeEspacio($datos);
+        $grupo = Grupo::findOrFail($datosDia['grupo_id']);
+        
+        
+        $empalmevacio = $this->horarioRepository->buscarEmpalmeEspacio($datosDia);
         if($empalmevacio){
-         throw new Exception("Conflicto: El espacio ya está ocupado por el grupo '{$empalmevacio->grupo->nombre}'.");
+            
+            throw new Exception("Conflicto: El espacio ya está ocupado el {$datosDia['dia_semana']} por el grupo '{$empalmevacio->grupo->nombre}'.");
         }
 
-        $empalmeDocente=$this->horarioRepository->buscarEmpalmesDocente($datos,$grupo->docente_id);
+        $empalmeDocente = $this->horarioRepository->buscarEmpalmesDocente($datosDia, $grupo->docente_id);
         if($empalmeDocente){
-            throw new Exception("Conflicto: El docente asignado ya tiene otra clase en este horario.");
+            throw new Exception("Conflicto: El docente asignado ya tiene clase el {$datosDia['dia_semana']} en este horario.");
         }
     }
 }

@@ -23,7 +23,7 @@ class StoreEspacioRequest extends FormRequest
     {
         return [
          
-           'nombre' => 'required|string|max:100',
+           'nombre' => 'required|string|max:100|unique:espacios,nombre',
             'capacidad' => 'required|integer|min:1'
         ];
 
@@ -35,7 +35,8 @@ class StoreEspacioRequest extends FormRequest
             'nombre.max' => 'El nombre no puede tener más de 100 caracteres.',
             'capacidad.required' => 'Debes indicar la capacidad del espacio.',
             'capacidad.integer' => 'La capacidad debe ser un número entero.',
-            'capacidad.min' => 'La capacidad debe ser de al menos 1 persona.'
+            'capacidad.min' => 'La capacidad debe ser de al menos 1 persona.',
+            'nombre.unique' => 'Ya existe un espacio registrado con este nombre.'
         ];
     }
 }

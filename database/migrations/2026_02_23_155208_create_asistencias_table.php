@@ -24,7 +24,7 @@ return new class extends Migration
             $table->date('fecha');
             $table->enum('estado', ['Asistió', 'Falta', 'Retardo', 'Sustitución'])->default('Asistió');
             $table->text('observaciones')->nullable();
-            
+            $table->index(['grupo_id', 'fecha']);
             $table->timestamps();
         });
     }

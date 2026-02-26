@@ -16,13 +16,14 @@ return new class extends Migration
         $table->string('nombre', 100);
         $table->integer('cupo_maximo');
 
-        // IMPORTANTE: Fíjate que dentro de constrained() esté el nombre en español
-        $table->foreignId('actividad_id')->constrained('actividades');       // Coincide con tu código nuevo
-        $table->foreignId('docente_id')->constrained('docentes');            // Coincide con tabla docentes
-        $table->foreignId('ciclo_id')->constrained('ciclos_escolares');      // Coincide con tu código nuevo
-        $table->foreignId('nivel_id')->nullable()->constrained('niveles');   // Coincide con tu código nuevo
+       
+        $table->foreignId('actividad_id')->constrained('actividades');       
+        $table->foreignId('docente_id')->constrained('docentes');           
+        $table->foreignId('ciclo_id')->constrained('ciclos_escolares');      
+        $table->foreignId('nivel_id')->nullable()->constrained('niveles');   
 
         $table->timestamps();
+        $table->index(['ciclo_id', 'docente_id']);
     });
 }
 

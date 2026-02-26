@@ -3,7 +3,7 @@
     <div class="module-header">
       <div class="title-group">
         <h1>Asignación de Horarios</h1>
-        <span class="badge-count">{{ horarios.length }} Registrados</span>
+        <span class="badge-count" v-if="horarios">{{ horarios.length }} Registrados</span>
       </div>
       
       <div class="header-actions">
@@ -33,7 +33,7 @@
     </div>
 
     <div class="table-responsive">
-      <table class="custom-table" v-if="cargando || listaFiltrada.length > 0">
+      <table class="custom-table" v-if="cargando || (listaFiltrada && listaFiltrada.length > 0)">
         <thead>
           <tr>
             <th>Día y Hora</th>
@@ -46,21 +46,7 @@
         
         <tbody v-if="cargando">
           <tr v-for="n in 5" :key="'skeleton-'+n">
-            <td>
-              <div class="item-info">
-                <div class="skeleton-box width-medium" style="margin-bottom: 5px;"></div>
-                <div class="skeleton-box width-small" style="border-radius: 4px;"></div>
-              </div>
-            </td>
-            <td>
-              <div class="item-info">
-                <div class="skeleton-box width-large" style="margin-bottom: 5px;"></div>
-                <div class="skeleton-box width-medium" style="border-radius: 4px;"></div>
-              </div>
-            </td>
-            <td><div class="skeleton-box width-large" style="border-radius: 8px;"></div></td>
-            <td><div class="skeleton-box width-medium" style="border-radius: 8px;"></div></td>
-            <td><div class="skeleton-box width-small" style="margin: 0 auto;"></div></td>
+            <td colspan="5"><div class="skeleton-box width-large"></div></td>
           </tr>
         </tbody>
 
@@ -103,7 +89,7 @@
         </tbody>
       </table>
       
-      <div v-if="!cargando && listaFiltrada.length === 0" class="sin-datos">
+      <div v-if="!cargando && listaFiltrada && listaFiltrada.length === 0" class="sin-datos">
         <i class="fa-solid fa-calendar-circle-exclamation empty-icon"></i>
         <p>No se encontraron horarios con esos criterios...</p>
       </div>
@@ -112,10 +98,7 @@
     <div v-if="mostrarModal" class="modal-overlay">
       <div class="modal-card">
         <div class="modal-header">
-          <h2>
-            <i class="fa-solid fa-calendar-plus"></i>
-            Asignar Nuevo Horario
-          </h2>
+          <h2><i class="fa-solid fa-calendar-plus"></i> Asignar Nuevo Horario</h2>
           <button @click="cerrarModal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
@@ -143,20 +126,27 @@
               <span class="text-error" v-if="errores.espacio_id">{{ errores.espacio_id[0] }}</span>
             </div>
 
-            <div class="form-group" style="grid-column: span 2;">
-              <label>Día de la Semana:</label>
-              <select v-model="nuevoHorario.dia_semana" :class="{'input-error': errores.dia_semana}">
-                <option value="" disabled>Seleccione el día...</option>
-                <option value="Lunes">Lunes</option>
-                <option value="Martes">Martes</option>
-                <option value="Miércoles">Miércoles</option>
-                <option value="Jueves">Jueves</option>
-                <option value="Viernes">Viernes</option>
-                <option value="Sábado">Sábado</option>
-              </select>
-              <span class="text-error" v-if="errores.dia_semana">{{ errores.dia_semana[0] }}</span>
+            <div class="form-group full-width">
+              <label>Días de la semana:</label>
+              <div class="dias-grid">
+                <label 
+                  v-for="dia in diasSemana" 
+                  :key="dia" 
+                  class="dia-pill"
+                  :class="{ 'activo': nuevoHorario.dias.includes(dia) }"
+                >
+                  <input 
+                    type="checkbox" 
+                    :value="dia" 
+                    v-model="nuevoHorario.dias" 
+                    class="hidden-checkbox"
+                  >
+                  {{ dia }}
+                </label>
+              </div>
+              <span class="text-error" v-if="errores.dias">{{ errores.dias[0] }}</span>
             </div>
-            
+
             <div class="form-group">
               <label>Hora de Inicio:</label>
               <flat-pickr 
@@ -164,7 +154,7 @@
                   :config="configHora" 
                   class="modern-time-input"
                   :class="{'input-error': errores.hora_inicio}"
-                  placeholder="Seleccione la hora"
+                  placeholder="00:00"
               ></flat-pickr>
               <span class="text-error" v-if="errores.hora_inicio">{{ errores.hora_inicio[0] }}</span>
             </div>
@@ -176,7 +166,7 @@
                   :config="configHora" 
                   class="modern-time-input"
                   :class="{'input-error': errores.hora_fin}"
-                  placeholder="Seleccione la hora"
+                  placeholder="00:00"
               ></flat-pickr>
               <span class="text-error" v-if="errores.hora_fin">{{ errores.hora_fin[0] }}</span>
             </div>
@@ -198,33 +188,33 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
-
-
 import flatPickr from 'vue-flatpickr-component';
 import 'flatpickr/dist/flatpickr.css';
 import { Spanish } from 'flatpickr/dist/l10n/es.js';
 import Swal from 'sweetalert2';
-// Variables
-const horarios = ref([]);
+
+// 1. Inicialización de variables reactivas
+const horarios = ref([]); // Siempre inicializar como arreglo vacío
 const grupos = ref([]);
 const espacios = ref([]);
 const busqueda = ref('');
 const mostrarModal = ref(false);
-
-const nuevoHorario = ref({ 
-    grupo_id: '', 
-    espacio_id: '', 
-    dia_semana: '', 
-    hora_inicio: '', 
-    hora_fin: '' 
-});
-
 const errores = ref({});
 const errorEmpalme = ref(''); 
 const enviando = ref(false);
 const cargando = ref(true); 
 
-// 🔴 Configuración de Flatpickr para Horas
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+// Objeto del formulario unificado
+const nuevoHorario = ref({ 
+    grupo_id: '', 
+    espacio_id: '', 
+    dias: [], 
+    hora_inicio: '', 
+    hora_fin: '' 
+});
+
 const configHora = ref({
     enableTime: true,
     noCalendar: true,
@@ -234,22 +224,23 @@ const configHora = ref({
     minuteIncrement: 15
 });
 
-// Filtro Inteligente
+// 2. Computed con protección para evitar errores de .filter en undefined
 const listaFiltrada = computed(() => {
-  const termino = busqueda.value.toLowerCase();
-  return horarios.value.filter(h => 
-    h.dia_semana.toLowerCase().includes(termino) ||
-    h.grupo?.nombre.toLowerCase().includes(termino) ||
-    (h.grupo?.docente?.nombre + ' ' + h.grupo?.docente?.apellidos).toLowerCase().includes(termino)
-  );
+    if (!horarios.value) return [];
+    const termino = busqueda.value.toLowerCase();
+    return horarios.value.filter(h => 
+        h.dia_semana?.toLowerCase().includes(termino) ||
+        h.grupo?.nombre?.toLowerCase().includes(termino) ||
+        (h.grupo?.docente?.nombre + ' ' + h.grupo?.docente?.apellidos).toLowerCase().includes(termino)
+    );
 });
 
-// Función para mostrar la hora en la tabla (corta los segundos)
 const formatearHoraVista = (hora) => {
-  if (!hora) return '';
-  return hora.substring(0, 5);
+    if (!hora) return '';
+    return hora.substring(0, 5);
 };
 
+// 3. Carga de datos
 const inicializarDatos = async () => {
     cargando.value = true;
     try {
@@ -258,37 +249,44 @@ const inicializarDatos = async () => {
             axios.get('/api/grupos'),
             axios.get('/api/espacios')
         ]);
-        
-        horarios.value = resHorarios.data;
+        // Asegurar que recibimos un arreglo
+        horarios.value = Array.isArray(resHorarios.data) ? resHorarios.data : [];
         grupos.value = resGrupos.data;
         espacios.value = resEspacios.data;
     } catch (error) { 
-        console.error("Error al cargar datos:", error); 
+        console.error("Error al cargar datos:", error);
+        horarios.value = []; 
     } finally {
         cargando.value = false;
     }
 };
 
 const abrirModalCrear = () => {
-    nuevoHorario.value = { grupo_id: '', espacio_id: '', dia_semana: '', hora_inicio: '', hora_fin: '' };
+    nuevoHorario.value = { 
+        grupo_id: '', 
+        espacio_id: '', 
+        dias: [], 
+        hora_inicio: '', 
+        hora_fin: '' 
+    };
     errores.value = {};
     errorEmpalme.value = '';
     mostrarModal.value = true;
 };
 
-const cerrarModal = () => {
-    mostrarModal.value = false;
-};
+const cerrarModal = () => { mostrarModal.value = false; };
 
+// 4. Lógica de guardado
 const guardarHorario = async () => {
     errores.value = {};
     errorEmpalme.value = ''; 
     enviando.value = true;
 
-    let datosAEnviar = {
+    // Se envía 'dias' como arreglo para que Laravel lo procese
+    const datosAEnviar = {
         grupo_id: nuevoHorario.value.grupo_id,
         espacio_id: nuevoHorario.value.espacio_id,
-        dia_semana: nuevoHorario.value.dia_semana,
+        dias: nuevoHorario.value.dias, 
         hora_inicio: nuevoHorario.value.hora_inicio,
         hora_fin: nuevoHorario.value.hora_fin
     };
@@ -296,48 +294,34 @@ const guardarHorario = async () => {
     try {
         await axios.post('/api/horarios', datosAEnviar);
         
-        const resHorarios = await axios.get('/api/horarios');
-        horarios.value = resHorarios.data;
+        // Refrescamos la lista completa
+        const res = await axios.get('/api/horarios');
+        horarios.value = res.data;
         
         cerrarModal();
 
-        // 🟢 Toast de Éxito
         Swal.fire({
             toast: true,
             position: 'top-end',
             icon: 'success',
-            title: 'Horario asignado correctamente',
+            title: 'Horarios asignados correctamente',
             showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
+            timer: 3000
         });
 
     } catch (error) {
         if (error.response) {
             if (error.response.status === 422) {
-                // Errores de validación (campos vacíos)
                 errores.value = error.response.data.errors;
             } 
             else if (error.response.status === 409) {
-                // 🟠 Alerta de Conflicto/Empalme
                 errorEmpalme.value = error.response.data.mensaje;
-                cerrarModal(); 
-                
                 Swal.fire({
                     icon: 'warning',
-                    title: '¡Conflicto Detectado!',
-                    text: error.response.data.mensaje,
-                    confirmButtonColor: '#e67e22' // Naranja de advertencia
+                    title: '¡Conflicto!',
+                    text: error.response.data.mensaje
                 });
             }
-        } else {
-            
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de conexión',
-                text: 'No se pudo comunicar con el servidor.',
-                confirmButtonColor: '#c0392b'
-            });
         }
     } finally {
         enviando.value = false;
@@ -347,12 +331,9 @@ const guardarHorario = async () => {
 const eliminarHorario = async (id) => {
     const result = await Swal.fire({
         title: '¿Liberar este horario?',
-        text: "El grupo se quedará sin este espacio asignado. Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#e74c3c',
-        cancelButtonColor: '#95a5a6',
-        confirmButtonText: 'Sí, liberar espacio',
+        confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     });
 
@@ -360,20 +341,9 @@ const eliminarHorario = async (id) => {
         try {
             await axios.delete(`/api/horarios/${id}`);
             horarios.value = horarios.value.filter(h => h.id !== id);
-            
-            Swal.fire({
-                title: '¡Liberado!',
-                text: 'El horario ha sido eliminado del sistema.',
-                icon: 'success',
-                confirmButtonColor: '#27ae60'
-            });
+            Swal.fire('Eliminado', '', 'success');
         } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Hubo un problema al intentar liberar el horario.',
-                confirmButtonColor: '#c0392b'
-            });
+            Swal.fire('Error', 'No se pudo eliminar', 'error');
         }
     }
 };
@@ -540,5 +510,27 @@ input:focus, select:focus { outline: none; border-color: #c0392b; }
   .form-group[style*="grid-column: span 2"] {
     grid-column: span 1 !important;
   }
+}
+.dias-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.hidden-checkbox {
+  display: none;
+}
+.dia-pill {
+  padding: 8px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s;
+  user-select: none;
+}
+.dia-pill.activo {
+  background-color: #D1101A; /* Rojo UGM */
+  color: white;
+  border-color: #D1101A;
 }
 </style>
