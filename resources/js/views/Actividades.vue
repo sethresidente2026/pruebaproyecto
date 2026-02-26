@@ -88,6 +88,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+// 🔴 1. Importamos SweetAlert2
+import Swal from 'sweetalert2';
 
 // Variables de Estado
 const actividades = ref([]);
@@ -96,18 +98,19 @@ const nombreActividad = ref('');
 const editandoId = ref(null);
 const enviando = ref(false);
 const errorNombre = ref('');
-const cargando = ref(true); // 🔴 Nueva variable para el Skeleton Loader
+const cargando = ref(true);
 
 // Cargar datos del servidor
 const cargarActividades = async () => {
-  cargando.value = true; // Iniciamos la animación
+  cargando.value = true;
   try {
     const res = await axios.get('/api/actividades');
     actividades.value = res.data;
   } catch (error) {
     console.error("Error al cargar actividades:", error);
+    Swal.fire({ icon: 'error', title: 'Error de carga', text: 'No se pudieron obtener las actividades.', confirmButtonColor: '#c0392b' });
   } finally {
-    cargando.value = false; // Detenemos la animación
+    cargando.value = false;
   }
 };
 
@@ -131,7 +134,7 @@ const cerrarModal = () => {
   errorNombre.value = '';
 };
 
-// Guardar (POST o PUT)
+// 🔴 2. Guardar (POST o PUT) con Notificaciones
 const guardarActividad = async () => {
   if (!nombreActividad.value.trim()) {
     errorNombre.value = 'El nombre es obligatorio';
@@ -144,8 +147,10 @@ const guardarActividad = async () => {
   try {
     if (editandoId.value) {
       await axios.put(`/api/actividades/${editandoId.value}`, { nombre: nombreActividad.value });
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Actividad actualizada', showConfirmButton: false, timer: 2000, timerProgressBar: true });
     } else {
       await axios.post('/api/actividades', { nombre: nombreActividad.value });
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Nueva actividad registrada', showConfirmButton: false, timer: 2000, timerProgressBar: true });
     }
     
     await cargarActividades();
@@ -154,21 +159,38 @@ const guardarActividad = async () => {
     if (error.response?.status === 422) {
       errorNombre.value = error.response.data.errors.nombre[0];
     } else {
-      alert("Error al procesar la solicitud.");
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Hubo un problema al guardar la actividad.', confirmButtonColor: '#c0392b' });
     }
   } finally {
     enviando.value = false;
   }
 };
 
-// Eliminar
+// 🔴 3. Eliminar con Confirmación Estilizada
 const eliminarActividad = async (id) => {
-  if (confirm('¿Estás seguro de eliminar esta actividad? Esto podría afectar a los grupos asignados.')) {
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "Esto podría afectar a los grupos que ya tienen esta actividad asignada.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#95a5a6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (result.isConfirmed) {
     try {
       await axios.delete(`/api/actividades/${id}`);
-      cargarActividades();
+      await cargarActividades();
+      Swal.fire({ title: '¡Eliminado!', text: 'La actividad ha sido borrada.', icon: 'success', confirmButtonColor: '#27ae60' });
     } catch (error) {
-      alert(error.response?.data?.mensaje || "No se pudo eliminar la actividad.");
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo eliminar',
+        text: error.response?.data?.mensaje || "Esta actividad está ligada a grupos activos.",
+        confirmButtonColor: '#c0392b'
+      });
     }
   }
 };

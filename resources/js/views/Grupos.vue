@@ -195,6 +195,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+// 🔴 1. Importamos SweetAlert2
+import Swal from 'sweetalert2';
 
 // Variables de Estado
 const grupos = ref([]);
@@ -209,7 +211,7 @@ const enviando = ref(false);
 const editandoId = ref(null);
 const mostrarModal = ref(false);
 const busqueda = ref('');
-const cargando = ref(true); // 🔴 Variable para el Skeleton Loader
+const cargando = ref(true); 
 
 // Filtro Inteligente
 const listaFiltrada = computed(() => {
@@ -259,14 +261,19 @@ const cerrarModal = () => {
     mostrarModal.value = false;
 };
 
+// 🔴 2. Guardar Grupo actualizado con SweetAlert2
 const guardarGrupo = async () => {
     errores.value = {};
     enviando.value = true;
     try {
         if (editandoId.value) {
             await axios.put(`/api/grupos/${editandoId.value}`, nuevoGrupo.value);
+            // Mensaje de actualización
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Grupo actualizado', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         } else {
             await axios.post('/api/grupos', nuevoGrupo.value);
+            // Mensaje de creación
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Grupo creado exitosamente', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         }
         
         const resGrupos = await axios.get('/api/grupos');
@@ -277,25 +284,47 @@ const guardarGrupo = async () => {
         if (error.response && error.response.status === 422) {
             errores.value = error.response.data.errors;
         } else {
-            alert("Error al guardar en el servidor.");
+            // Error general del servidor
+            Swal.fire({ icon: 'error', title: 'Error de servidor', text: 'No se pudo guardar el grupo.', confirmButtonColor: '#c0392b' });
         }
     } finally { 
         enviando.value = false; 
     }
 };
 
+// 🔴 3. Eliminar Grupo actualizado con SweetAlert2
 const eliminarGrupo = async (id) => {
-    if (!confirm('¿Seguro que deseas eliminar este grupo?')) return; 
-    try {
-        await axios.delete(`/api/grupos/${id}`);
-        grupos.value = grupos.value.filter(g => g.id !== id);
-    } catch (error) {
-        alert("Error al eliminar. Revisa si tiene horarios asignados.");
+    const result = await Swal.fire({
+        title: '¿Eliminar este grupo?',
+        text: "Ten cuidado, podrías dejar a sus alumnos huérfanos de actividad.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await axios.delete(`/api/grupos/${id}`);
+            grupos.value = grupos.value.filter(g => g.id !== id);
+            
+            Swal.fire({ title: '¡Eliminado!', text: 'El grupo ha sido borrado.', icon: 'success', confirmButtonColor: '#27ae60' });
+        } catch (error) {
+            // Manejamos el error específico si el grupo tiene horarios asignados
+            Swal.fire({
+                icon: 'error',
+                title: 'No se puede eliminar',
+                text: 'Este grupo ya tiene horarios o alumnos asignados. Elimínalos primero.',
+                confirmButtonColor: '#c0392b'
+            });
+        }
     }
 };
 
 const exportarExcel = () => {
-    window.location.href = '/api/reportes/grupos'; // 🔴 Descarga directa corregida
+    window.location.href = '/api/reportes/grupos'; 
 };
 
 onMounted(inicializarDatos);

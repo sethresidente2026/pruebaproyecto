@@ -67,31 +67,39 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-
+import { storage } from '../../utils/storage';
 const router = useRouter();
 const formulario = ref({ email: '', password: '' });
 const mensajeError = ref('');
 const cargando = ref(false);
-const mostrarPassword = ref(false); // 🔴 Estado para el ojo de contraseña
-const animarError = ref(false);     // 🔴 Estado para animar la tarjeta
+const mostrarPassword = ref(false);
+const animarError = ref(false);     
 
 const iniciarSesion = async () => {
     mensajeError.value = '';
     cargando.value = true;
-    animarError.value = false; // Reseteamos la animación
+    animarError.value = false;
 
     try {
+        // Laravel Sanctum
         await axios.get('/sanctum/csrf-cookie');
-        await axios.post('/api/login', formulario.value);
+        const respuesta = await axios.post('/api/login', formulario.value);
         
-        localStorage.setItem('auth', 'true');
+        // 2. USO DEL ALMACENAMIENTO CIFRADO
+        // Guardamos el objeto completo o solo el token, pero cifrado
+        storage.set('auth', {
+            isLoggedIn: true,
+            token: respuesta.data.token, // Si tu API devuelve un token
+            updated_at: new Date().getTime()
+        });
+
         router.push('/');
 
     } catch (error) {
-        // Disparamos la animación de temblor
         animarError.value = true;
-        setTimeout(() => { animarError.value = false }, 500); // Se apaga tras medio segundo
+        setTimeout(() => { animarError.value = false }, 500);
         
+        // Manejo de errores...
         if (error.response && error.response.status === 401) {
             mensajeError.value = "Credenciales incorrectas.";
         } else {

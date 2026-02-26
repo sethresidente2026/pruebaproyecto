@@ -140,6 +140,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+// 🔴 1. Importamos SweetAlert2
+import Swal from 'sweetalert2';
 
 // Estado
 const docentes = ref([]);
@@ -149,7 +151,7 @@ const enviando = ref(false);
 const editandoId = ref(null);
 const mostrarModal = ref(false);
 const busqueda = ref('');
-const cargando = ref(true); // Variable para el Skeleton Loader
+const cargando = ref(true); 
 
 // Filtro Inteligente
 const listaFiltrada = computed(() => {
@@ -192,7 +194,6 @@ const cargarParaEditar = (docente) => {
         email: docente.email, 
         estatus: docente.estatus 
     };
-    // 🔴 Corrección: Se eliminó el "ro" que estaba rompiendo el código
     editandoId.value = docente.id;
     errores.value = {};
     mostrarModal.value = true;
@@ -202,45 +203,61 @@ const cerrarModal = () => {
     mostrarModal.value = false;
 };
 
+// 🔴 2. Guardar Docente con Notificaciones Modernas
 const guardarDocente = async () => {
     errores.value = {};
     enviando.value = true;
     try {
         if (editandoId.value) {
-            // Petición PUT limpia, sin basuras en la URL ni en el body
             await axios.put(`/api/docentes/${editandoId.value}`, nuevoDocente.value);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Datos actualizados', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         } else {
             await axios.post('/api/docentes', nuevoDocente.value);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Docente registrado', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         }
         await obtenerDocentes();
         cerrarModal();
     } catch (error) {
         if (error.response && error.response.status === 422) {
-            // Verifica si hay errores de validación de formulario vs error de lógica (string directo)
             if (error.response.data.errors) {
                 errores.value = error.response.data.errors;
             } else if (error.response.data.message) {
-                alert(error.response.data.message);
+                // Error de lógica de negocio (ej: docente con grupos activos)
+                Swal.fire({ icon: 'warning', title: 'Acción restringida', text: error.response.data.message, confirmButtonColor: '#e67e22' });
             }
         } else {
-            alert("Ocurrió un error en el servidor.");
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error inesperado en el servidor.', confirmButtonColor: '#c0392b' });
         }
     } finally { 
         enviando.value = false; 
     }
 };
 
+// 🔴 3. Eliminar Docente con Confirmación Estilizada
 const eliminarDocente = async (id) => {
-    if (!confirm('¿Seguro que deseas eliminar este docente?')) return; 
-    try {
-        await axios.delete(`/api/docentes/${id}`);
-        docentes.value = docentes.value.filter(d => d.id !== id);
-    } catch (error) {
-        // 🔴 Corrección: Atrapamos el error 422 y mostramos el mensaje exacto del Service
-        if (error.response && error.response.status === 422) {
-            alert(error.response.data.message);
-        } else {
-            alert("Ocurrió un error al intentar eliminar.");
+    const result = await Swal.fire({
+        title: '¿Eliminar docente?',
+        text: "Esta acción es irreversible. Se recomienda cambiar el estatus a 'Inactivo' en su lugar.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Sí, eliminar permanentemente',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await axios.delete(`/api/docentes/${id}`);
+            docentes.value = docentes.value.filter(d => d.id !== id);
+            Swal.fire({ title: '¡Eliminado!', text: 'El docente ha sido borrado del sistema.', icon: 'success', confirmButtonColor: '#27ae60' });
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                // Mensaje enviado desde tu DocenteService.php
+                Swal.fire({ icon: 'error', title: 'No se puede eliminar', text: error.response.data.message, confirmButtonColor: '#c0392b' });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo completar la eliminación.', confirmButtonColor: '#c0392b' });
+            }
         }
     }
 };

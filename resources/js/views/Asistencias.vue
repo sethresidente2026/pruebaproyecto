@@ -104,7 +104,13 @@
             
             <div class="form-group">
               <label>Fecha de la Clase:</label>
-              <input type="date" v-model="nuevaAsistencia.fecha" :class="{'input-error': errores.fecha}" required>
+              <flat-pickr 
+                  v-model="nuevaAsistencia.fecha" 
+                  :config="configFecha" 
+                  class="modern-date-input"
+                  :class="{'input-error': errores.fecha}"
+                  placeholder="Seleccione la fecha"
+              ></flat-pickr>
               <span class="text-error" v-if="errores?.fecha">{{ errores.fecha[0] }}</span>
             </div>
 
@@ -170,6 +176,11 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
+// 🔴 Importaciones de Flatpickr
+import flatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
+import { Spanish } from 'flatpickr/dist/l10n/es.js';
+import Swal from 'sweetalert2';
 const asistencias = ref([]);
 const grupos = ref([]);
 const docentes = ref([]);
@@ -181,7 +192,14 @@ const errores = ref({});
 const enviando = ref(false);
 const mostrarModal = ref(false);
 const busqueda = ref('');
-const cargando = ref(true); // 🔴 Variable para el Skeleton Loader
+const cargando = ref(true); 
+
+// 🔴 Configuración de Flatpickr para Fechas
+const configFecha = ref({
+    dateFormat: "Y-m-d", // Formato exacto para la BD de Laravel
+    locale: Spanish, // Calendario en español (Lunes, Martes...)
+    disableMobile: "true" // Fuerza a usar este calendario bonito también en móvil
+});
 
 const listaFiltrada = computed(() => {
   const termino = busqueda.value.toLowerCase();
@@ -192,7 +210,7 @@ const listaFiltrada = computed(() => {
 });
 
 const descargarReporte = () => {
-    window.location.href = '/api/reportes/pagos'; // 🔴 Descarga directa sin abrir ventana en blanco
+    window.location.href = '/api/reportes/pagos'; 
 };
 
 const inicializarDatos = async () => {
@@ -230,7 +248,6 @@ const guardarAsistencia = async () => {
     errores.value = {};
     enviando.value = true;
     
-    // Si no es sustitución, limpiamos el campo por seguridad antes de enviarlo
     if (nuevaAsistencia.value.estado !== 'Sustitución') {
         nuevaAsistencia.value.docente_sustituto_id = null;
     }
@@ -240,11 +257,29 @@ const guardarAsistencia = async () => {
         const resAsistencias = await axios.get('/api/asistencias');
         asistencias.value = resAsistencias.data;
         cerrarModal();
+
+        // 🟢 Toast animado de Éxito en la esquina superior
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Pase de lista registrado',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
     } catch (error) {
         if (error.response && error.response.status === 422) {
             errores.value = error.response.data.errors;
         } else {
-            alert("Error al guardar en el servidor.");
+            // 🔴 Alerta moderna de Error Servidor
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo comunicar con el servidor de la base de datos.',
+                confirmButtonColor: '#c0392b'
+            });
         }
     } finally { 
         enviando.value = false; 
@@ -252,12 +287,38 @@ const guardarAsistencia = async () => {
 };
 
 const eliminarAsistencia = async (id) => {
-    if (!confirm('¿Seguro que deseas eliminar este registro?')) return; 
-    try {
-        await axios.delete(`/api/asistencias/${id}`);
-        asistencias.value = asistencias.value.filter(a => a.id !== id);
-    } catch (error) {
-        alert("Error al eliminar.");
+    // Modal de confirmación estilizado
+    const result = await Swal.fire({
+        title: '¿Eliminar registro?',
+        text: "Esta acción no se puede deshacer y afectará el cálculo de pagos.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c', // Rojo eliminar
+        cancelButtonColor: '#95a5a6',  // Gris cancelar
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    // Si el usuario hace clic en "Sí, eliminar"
+    if (result.isConfirmed) {
+        try {
+            await axios.delete(`/api/asistencias/${id}`);
+            asistencias.value = asistencias.value.filter(a => a.id !== id);
+            
+            Swal.fire({
+                title: '¡Eliminado!',
+                text: 'El pase de lista ha sido borrado.',
+                icon: 'success',
+                confirmButtonColor: '#27ae60' // Verde éxito
+            });
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Hubo un problema al intentar eliminar el registro.',
+                confirmButtonColor: '#c0392b'
+            });
+        }
     }
 };
 
@@ -320,6 +381,19 @@ input, select { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-ra
 input:focus, select:focus { outline: none; border-color: #c0392b; }
 .input-error { border-color: #e74c3c; }
 .text-error { color: #e74c3c; font-size: 0.8rem; margin-top: 5px; display: block; }
+
+/* 🔴 Estilos aplicados al input generado por Flatpickr */
+.modern-date-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dcdde1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background-color: #fafbfc;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.modern-date-input:focus { outline: none; border-color: #c0392b; background-color: #ffffff; }
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;}
 .btn-guardar { background-color: var(--ugm-red, #c0392b); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;}

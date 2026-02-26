@@ -116,6 +116,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+// 🔴 1. Importamos SweetAlert2
+import Swal from 'sweetalert2';
 
 // Estado
 const espacios = ref([]);
@@ -125,7 +127,7 @@ const enviando = ref(false);
 const editandoId = ref(null);
 const mostrarModal = ref(false);
 const busqueda = ref('');
-const cargando = ref(true); // 🔴 Variable para el Skeleton Loader
+const cargando = ref(true);
 
 // Filtro Inteligente
 const listaFiltrada = computed(() => {
@@ -135,14 +137,14 @@ const listaFiltrada = computed(() => {
 
 // Lógica de Datos
 const obtenerEspacios = async () => {
-    cargando.value = true; // Inicia la carga
+    cargando.value = true;
     try {
         const respuesta = await axios.get('/api/espacios');
         espacios.value = respuesta.data;
     } catch (error) { 
         console.error("Error al cargar:", error); 
     } finally {
-        cargando.value = false; // Detiene la carga
+        cargando.value = false;
     }
 };
 
@@ -164,14 +166,17 @@ const cerrarModal = () => {
     mostrarModal.value = false;
 };
 
+// 🔴 2. Guardar Espacio con Toasts y Alertas
 const guardarEspacio = async () => {
     errores.value = {};
     enviando.value = true;
     try {
         if (editandoId.value) {
             await axios.put(`/api/espacios/${editandoId.value}`, nuevoEspacio.value);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Espacio actualizado', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         } else {
             await axios.post('/api/espacios', nuevoEspacio.value);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Espacio registrado exitosamente', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         }
         await obtenerEspacios();
         cerrarModal();
@@ -179,21 +184,40 @@ const guardarEspacio = async () => {
         if (error.response && error.response.status === 422) {
             errores.value = error.response.data.errors;
         } else {
-            alert("Error al guardar en el servidor.");
+            Swal.fire({ icon: 'error', title: 'Error de servidor', text: 'No se pudo procesar la solicitud del espacio.', confirmButtonColor: '#c0392b' });
         }
     } finally { 
         enviando.value = false; 
     }
 };
 
+// 🔴 3. Eliminar Espacio con Confirmación Moderna
 const eliminarEspacio = async (id) => {
-    if (!confirm('¿Seguro que deseas eliminar este espacio?')) return; 
-    try {
-        await axios.delete(`/api/espacios/${id}`);
-        // Actualizamos localmente sin recargar todo para mejor UX
-        espacios.value = espacios.value.filter(e => e.id !== id);
-    } catch (error) {
-        alert("No se pudo eliminar el espacio. Verifica que no tenga horarios asignados.");
+    const result = await Swal.fire({
+        title: '¿Eliminar este espacio?',
+        text: "Si este lugar tiene horarios asignados, no podrás borrarlo hasta liberarlos.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await axios.delete(`/api/espacios/${id}`);
+            espacios.value = espacios.value.filter(e => e.id !== id);
+            
+            Swal.fire({ title: '¡Eliminado!', text: 'El espacio ha sido retirado del catálogo.', icon: 'success', confirmButtonColor: '#27ae60' });
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Conflicto de integridad',
+                text: 'No se pudo eliminar el espacio. Verifica que no tenga horarios vigentes asignados.',
+                confirmButtonColor: '#c0392b'
+            });
+        }
     }
 };
 

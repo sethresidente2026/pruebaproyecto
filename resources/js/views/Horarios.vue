@@ -73,7 +73,7 @@
                   {{ horario.dia_semana }}
                 </span>
                 <span class="time-badge">
-                  <i class="fa-regular fa-clock"></i> {{ formatearHora(horario.hora_inicio) }} - {{ formatearHora(horario.hora_fin) }}
+                  <i class="fa-regular fa-clock"></i> {{ formatearHoraVista(horario.hora_inicio) }} - {{ formatearHoraVista(horario.hora_fin) }}
                 </span>
               </div>
             </td>
@@ -131,7 +131,7 @@
               </select>
               <span class="text-error" v-if="errores.grupo_id">{{ errores.grupo_id[0] }}</span>
             </div>
-
+           
             <div class="form-group full-width">
               <label>Espacio (Salón/Cancha):</label>
               <select v-model="nuevoHorario.espacio_id" :class="{'input-error': errores.espacio_id}">
@@ -159,13 +159,25 @@
             
             <div class="form-group">
               <label>Hora de Inicio:</label>
-              <input type="time" v-model="nuevoHorario.hora_inicio" :class="{'input-error': errores.hora_inicio}">
+              <flat-pickr 
+                  v-model="nuevoHorario.hora_inicio" 
+                  :config="configHora" 
+                  class="modern-time-input"
+                  :class="{'input-error': errores.hora_inicio}"
+                  placeholder="Seleccione la hora"
+              ></flat-pickr>
               <span class="text-error" v-if="errores.hora_inicio">{{ errores.hora_inicio[0] }}</span>
             </div>
 
             <div class="form-group">
               <label>Hora de Fin:</label>
-              <input type="time" v-model="nuevoHorario.hora_fin" :class="{'input-error': errores.hora_fin}">
+              <flat-pickr 
+                  v-model="nuevoHorario.hora_fin" 
+                  :config="configHora" 
+                  class="modern-time-input"
+                  :class="{'input-error': errores.hora_fin}"
+                  placeholder="Seleccione la hora"
+              ></flat-pickr>
               <span class="text-error" v-if="errores.hora_fin">{{ errores.hora_fin[0] }}</span>
             </div>
           </div>
@@ -187,6 +199,11 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
+
+import flatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
+import { Spanish } from 'flatpickr/dist/l10n/es.js';
+import Swal from 'sweetalert2';
 // Variables
 const horarios = ref([]);
 const grupos = ref([]);
@@ -194,11 +211,28 @@ const espacios = ref([]);
 const busqueda = ref('');
 const mostrarModal = ref(false);
 
-const nuevoHorario = ref({ grupo_id: '', espacio_id: '', dia_semana: '', hora_inicio: '', hora_fin: '' });
+const nuevoHorario = ref({ 
+    grupo_id: '', 
+    espacio_id: '', 
+    dia_semana: '', 
+    hora_inicio: '', 
+    hora_fin: '' 
+});
+
 const errores = ref({});
 const errorEmpalme = ref(''); 
 const enviando = ref(false);
-const cargando = ref(true); // 🔴 Variable para el Skeleton Loader
+const cargando = ref(true); 
+
+// 🔴 Configuración de Flatpickr para Horas
+const configHora = ref({
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: "H:i",
+    time_24hr: true,
+    locale: Spanish,
+    minuteIncrement: 15
+});
 
 // Filtro Inteligente
 const listaFiltrada = computed(() => {
@@ -210,8 +244,8 @@ const listaFiltrada = computed(() => {
   );
 });
 
-// Función útil para mostrar la hora sin segundos (ej: 08:00 en lugar de 08:00:00)
-const formatearHora = (hora) => {
+// Función para mostrar la hora en la tabla (corta los segundos)
+const formatearHoraVista = (hora) => {
   if (!hora) return '';
   return hora.substring(0, 5);
 };
@@ -251,26 +285,59 @@ const guardarHorario = async () => {
     errorEmpalme.value = ''; 
     enviando.value = true;
 
+    let datosAEnviar = {
+        grupo_id: nuevoHorario.value.grupo_id,
+        espacio_id: nuevoHorario.value.espacio_id,
+        dia_semana: nuevoHorario.value.dia_semana,
+        hora_inicio: nuevoHorario.value.hora_inicio,
+        hora_fin: nuevoHorario.value.hora_fin
+    };
+
     try {
-        await axios.post('/api/horarios', nuevoHorario.value);
+        await axios.post('/api/horarios', datosAEnviar);
         
         const resHorarios = await axios.get('/api/horarios');
         horarios.value = resHorarios.data;
         
         cerrarModal();
 
+        // 🟢 Toast de Éxito
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Horario asignado correctamente',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
     } catch (error) {
         if (error.response) {
             if (error.response.status === 422) {
+                // Errores de validación (campos vacíos)
                 errores.value = error.response.data.errors;
             } 
             else if (error.response.status === 409) {
+                // 🟠 Alerta de Conflicto/Empalme
                 errorEmpalme.value = error.response.data.mensaje;
-                cerrarModal(); // Cerramos el modal para que vea la alerta gigante
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                cerrarModal(); 
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Conflicto Detectado!',
+                    text: error.response.data.mensaje,
+                    confirmButtonColor: '#e67e22' // Naranja de advertencia
+                });
             }
         } else {
-            alert("Error de conexión.");
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo comunicar con el servidor.',
+                confirmButtonColor: '#c0392b'
+            });
         }
     } finally {
         enviando.value = false;
@@ -278,17 +345,41 @@ const guardarHorario = async () => {
 };
 
 const eliminarHorario = async (id) => {
-    if (!confirm('¿Seguro que deseas liberar este horario?')) return; 
-    try {
-        await axios.delete(`/api/horarios/${id}`);
-        horarios.value = horarios.value.filter(h => h.id !== id);
-    } catch (error) {
-        alert(" Error al eliminar el horario.");
+    const result = await Swal.fire({
+        title: '¿Liberar este horario?',
+        text: "El grupo se quedará sin este espacio asignado. Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Sí, liberar espacio',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await axios.delete(`/api/horarios/${id}`);
+            horarios.value = horarios.value.filter(h => h.id !== id);
+            
+            Swal.fire({
+                title: '¡Liberado!',
+                text: 'El horario ha sido eliminado del sistema.',
+                icon: 'success',
+                confirmButtonColor: '#27ae60'
+            });
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Hubo un problema al intentar liberar el horario.',
+                confirmButtonColor: '#c0392b'
+            });
+        }
     }
 };
 
 const exportarExcel = () => {
-    window.location.href = '/api/reportes/horarios'; // 🔴 Descarga directa corregida
+    window.location.href = '/api/reportes/horarios'; 
 };
 
 onMounted(inicializarDatos);
@@ -356,6 +447,19 @@ input, select { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-ra
 input:focus, select:focus { outline: none; border-color: #c0392b; }
 .input-error { border-color: #e74c3c; background-color: #fff6f6; }
 .text-error { color: #e74c3c; font-size: 0.8rem; margin-top: 5px; display: block; }
+
+/* 🔴 Estilos aplicados al input generado por Flatpickr */
+.modern-time-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dcdde1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background-color: #fafbfc;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.modern-time-input:focus { outline: none; border-color: #c0392b; background-color: #ffffff; }
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
 .btn-guardar { background-color: var(--ugm-red); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }

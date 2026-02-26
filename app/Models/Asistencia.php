@@ -13,7 +13,7 @@ class Asistencia extends Model
         'estado',
         'observaciones',
         'grupo_id',
-        'docente_id', // En la base de datos se llama docente_id
+        'docente_id', 
         'docente_sustituto_id',
     ];
     public function grupo()
