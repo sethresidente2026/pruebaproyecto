@@ -15,13 +15,13 @@ class StoreAsistenciaRequest extends FormRequest
             'grupo_id'             => 'required|exists:grupos,id',
             'docente_id'           => 'required|exists:docentes,id',
             'estado'               => 'required|in:Asistió,Falta,Retardo,Sustitución',
-            // El sustituto solo es obligatorio si el estado es 'Sustitución'
+            
             'docente_sustituto_id' => 'nullable|exists:docentes,id|different:docente_titular_id',
             'observaciones'        => 'nullable|string|max:255'
         ];
     }
 
-    // Opcional: Mensajes en español si el usuario se equivoca
+    
     public function messages()
     {
         return [

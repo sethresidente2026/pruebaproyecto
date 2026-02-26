@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Nivel extends Model
 {
-   protected $table = 'niveles'; // <--- Le decimos el nombre real
+   protected $table = 'niveles'; 
     protected $guarded = [];
 }

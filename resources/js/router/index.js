@@ -19,7 +19,7 @@ const routes = [
         path: '/', 
         name: 'home', 
         component: () => import('../views/Home.vue'),
-        meta: { requiresAuth: true } // 🔒 Etiqueta de seguridad
+        meta: { requiresAuth: true } 
     },
     { 
         path: '/docentes', 
@@ -66,15 +66,15 @@ const router = createRouter({
 
 
 router.beforeEach((to, from, next) => {
-    // Usamos 'auth' como la fuente única de verdad
+    
     const isAuthenticated = localStorage.getItem('auth'); 
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        // Si intenta entrar a una ruta protegida (Docentes, Grupos, etc.) sin auth
+       
         next({ name: 'login' }); 
     }
     else if (to.name === 'login' && isAuthenticated) {
-        // Si ya está logueado e intenta ir al login, lo mandamos al home
+       
         next({ name: 'home' }); 
     }
     else {

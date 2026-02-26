@@ -137,7 +137,7 @@ WithColumnWidths
                     ],
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FF1E293B'], // Azul oscuro elegante
+                        'startColor' => ['argb' => 'FF1E293B'], 
                     ],
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,

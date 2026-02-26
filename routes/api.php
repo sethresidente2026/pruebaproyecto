@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Importa tus controladores (Ojo con el de Asistencia)
+// controladores
 use App\Http\Controllers\Api\Catalogos\DocenteController;
 use App\Http\Controllers\Api\Catalogos\EspacioController;
 use App\Http\Controllers\Api\Operacion\GrupoController;
@@ -24,9 +24,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reportes/pagos', [AsistenciaController::class, 'exportarPagos']);
     Route::get('reporte-general', [ReporteController::class, 'reporteGeneral']);
     Route::get('reporte-pdf', [ReporteController::class, 'generarPDF']);
-Route::get('reportes/grupos', [ReporteController::class, 'exportarGrupos']);
-Route::get('reportes/horarios', [ReporteController::class, 'exportarHorarios']);
-Route::get('reportes/docentes', [ReporteController::class, 'exportarDocentes']);
+    Route::get('reportes/grupos', [ReporteController::class, 'exportarGrupos']);
+    Route::get('reportes/horarios', [ReporteController::class, 'exportarHorarios']);
+    Route::get('reportes/docentes', [ReporteController::class, 'exportarDocentes']);
    
     Route::apiResource('docentes', DocenteController::class);
     Route::apiResource('espacios', EspacioController::class);
