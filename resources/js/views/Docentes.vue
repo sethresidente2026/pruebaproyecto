@@ -178,14 +178,12 @@ const descargarExcel = () => {
     window.location.href = '/api/reportes/docentes';
 };
 
-
 const abrirModalCrear = () => {
     editandoId.value = null; 
     nuevoDocente.value = { nombre: '', apellidos: '', email: '', estatus: 'Activo' };
     errores.value = {};
     mostrarModal.value = true;
 };
-
 
 const cargarParaEditar = (docente) => {
     nuevoDocente.value = { 
@@ -194,7 +192,8 @@ const cargarParaEditar = (docente) => {
         email: docente.email, 
         estatus: docente.estatus 
     };
-    editandoId.value = docente.id;ro
+    // 🔴 Corrección: Se eliminó el "ro" que estaba rompiendo el código
+    editandoId.value = docente.id;
     errores.value = {};
     mostrarModal.value = true;
 };
@@ -217,7 +216,12 @@ const guardarDocente = async () => {
         cerrarModal();
     } catch (error) {
         if (error.response && error.response.status === 422) {
-            errores.value = error.response.data.errors;
+            // Verifica si hay errores de validación de formulario vs error de lógica (string directo)
+            if (error.response.data.errors) {
+                errores.value = error.response.data.errors;
+            } else if (error.response.data.message) {
+                alert(error.response.data.message);
+            }
         } else {
             alert("Ocurrió un error en el servidor.");
         }
@@ -232,16 +236,18 @@ const eliminarDocente = async (id) => {
         await axios.delete(`/api/docentes/${id}`);
         docentes.value = docentes.value.filter(d => d.id !== id);
     } catch (error) {
-        if (error.response && error.response.status === 500) {
-            alert("No puedes eliminar este docente porque ya tiene GRUPOS asignados.");
+        // 🔴 Corrección: Atrapamos el error 422 y mostramos el mensaje exacto del Service
+        if (error.response && error.response.status === 422) {
+            alert(error.response.data.message);
         } else {
-            alert("Ocurrió un error.");
+            alert("Ocurrió un error al intentar eliminar.");
         }
     }
 };
 
 onMounted(obtenerDocentes);
 </script>
+
 <style scoped>
 /* =========================================
    Diseño General

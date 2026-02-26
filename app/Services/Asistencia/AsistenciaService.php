@@ -36,7 +36,7 @@ class AsistenciaService
 
     public function exportarReportePagos()
     {
-        // Generamos el nombre dinámico con el mes y año actual
+       
         $mesActual = Carbon::now()->locale('es')->monthName;
         $anio = Carbon::now()->year;
         

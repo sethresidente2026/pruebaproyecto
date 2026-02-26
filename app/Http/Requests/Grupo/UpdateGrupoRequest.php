@@ -27,8 +27,8 @@ class UpdateGrupoRequest extends FormRequest
             'es_mixto'     => 'boolean',
             'docente_id'   => 'required|exists:docentes,id',
             'actividad_id' => 'required|exists:actividades,id',
-            'ciclo_id'     => 'required|exists:ciclos_escolares,id', 
-            'nivel_id'     => 'required|exists:niveles,id'
+            
+            
         ];
     }
 }

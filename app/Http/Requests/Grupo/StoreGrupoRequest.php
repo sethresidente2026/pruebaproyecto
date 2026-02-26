@@ -13,11 +13,16 @@ class StoreGrupoRequest extends FormRequest
         return [
             
             'nombre'        => 'required|string|max:50',
-            'cupo_maximo'   => 'required|integer|min:1|max:100', 
+            'cupo_maximo'   => 'required|integer|min:1|max:100',
             'docente_id'    => 'required|exists:docentes,id',
             'actividad_id'  => 'required|exists:actividades,id',
-            'ciclo_id'      => 'required|exists:ciclos,id',
-            'nivel_id'      => 'required|exists:nivels,id',
+            
+            
+            'ciclo_id'      => 'required|exists:ciclos_escolares,id', 
+            
+    
+            'nivel_id'      => 'required|exists:niveles,id',          
+            
             'estatus'       => 'nullable|in:Activo,Inactivo'
         ];
     }
@@ -28,8 +33,8 @@ class StoreGrupoRequest extends FormRequest
             'cupo_maximo.min'      => 'El cupo mínimo debe ser de al menos 1 persona.',
             'docente_id.exists'    => 'El docente seleccionado no es válido.',
             'actividad_id.exists'  => 'La actividad seleccionada no existe.',
-            'ciclo_id.exists'      => 'El ciclo escolar seleccionado no es válido.',
-            'nivel_id.exists'      => 'El nivel educativo seleccionado no es válido.',
+            
+            
         ];
     }
 }
