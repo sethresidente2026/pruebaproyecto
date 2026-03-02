@@ -16,6 +16,3 @@ npm run build
 php artisan serve
 
 
-Credenciales de Prueba:
-prueba@gmail.com
-12345678
