@@ -191,7 +191,7 @@ const guardarEspacio = async () => {
     }
 };
 
-// 🔴 3. Eliminar Espacio con Confirmación Moderna
+
 const eliminarEspacio = async (id) => {
     const result = await Swal.fire({
         title: '¿Eliminar este espacio?',
@@ -262,7 +262,7 @@ onMounted(obtenerEspacios);
    ========================================= */
 .skeleton-box {
   height: 18px;
-  background-color: #e2e8f0;
+  background-color: #703646;
   border-radius: 4px;
   position: relative;
   overflow: hidden;
@@ -339,7 +339,7 @@ input:focus { outline: none; border-color: #c0392b; }
   }
 
   .table-responsive {
-    border: 1px solid #eee;
+    border: 3px solid #eee;
     padding-bottom: 10px;
   }
 }

@@ -404,7 +404,7 @@ input:focus, select:focus { outline: none; border-color: #c0392b; }
    ========================================= */
 .skeleton-box {
   height: 18px;
-  background-color: #e2e8f0;
+  background-color: #703646;
   border-radius: 4px;
   position: relative;
   overflow: hidden;

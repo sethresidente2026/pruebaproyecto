@@ -44,7 +44,7 @@
       <div class="stat-card">
         <div class="icon-box bg-ugm-red"><i class="fa-solid fa-clipboard-check"></i></div>
         <div class="info">
-          <h3>{{ totales.asistencias }} Clases</h3>
+          <h3>{{ totales.asistencias }} Asistencias</h3>
           <p>Registradas Hoy</p>
         </div>
       </div>
@@ -84,7 +84,7 @@ const cargarTotales = async () => {
             axios.get('/api/espacios'),
             axios.get('/api/grupos'),
             axios.get('/api/horarios'),
-            axios.get('/api/asistencias') // <--- Nueva petición
+            axios.get('/api/asistencias') 
         ]);
         
         // Filtramos las asistencias para contar solo las que se hicieron el día de hoy
