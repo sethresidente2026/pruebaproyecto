@@ -339,7 +339,32 @@ const eliminarHorario = async (id) => {
   }
 };
 
-const exportarExcel = () => window.location.href = '/api/reportes/horarios';
+const exportarExcel = async () => {
+    try {
+        // Pedimos el archivo a la ruta protegida asegurando que Axios envíe las credenciales
+        const response = await axios.get('/api/reportes/horarios', {
+            responseType: 'blob' // Fundamental para que no lo lea como texto/JSON
+        });
+
+        // Creamos un enlace temporal en memoria para forzar la descarga
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Le damos un nombre al archivo
+        link.setAttribute('download', 'Reporte_Horarios.xlsx'); 
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiamos la memoria
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Error descargando el archivo:", error);
+        Swal.fire('Error', 'No tienes permisos o la sesión expiró', 'error');
+    }
+};
 
 onMounted(inicializarDatos);
 </script>

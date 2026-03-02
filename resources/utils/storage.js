@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
 
 const SECRET_KEY = 'tu_clave_secreta'; 
-const SESSION_TIMEOUT = 3600000; // 1 hora en milisegundos (60 * 60 * 1000)
+const SESSION_TIMEOUT = 7200000; // 1 hora en milisegundos (60 * 60 * 1000)
 
 export const storage = {
   set(key, value) {
